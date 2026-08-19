@@ -35,9 +35,9 @@ const areaIntroductions=[
   'Cerraremos mirando tus ingresos, gastos y estrategias para construir un retiro más predecible.'
 ];
 const courseRecommendations=[
-  {id:'money',name:'¿Por qué no nos alcanza el dinero?',url:'https://hispanic-wealth.teachable.com/l/pdp/por-que-no-nos-alcanza-el-dinero',thumbnail:null,questionRefs:['0-0-0','5-0-1'],areaIndices:[0,5],reason:'Te puede ayudar a ordenar gastos, presupuesto y decisiones cotidianas con el dinero.'},
-  {id:'emergency',name:'Fondo de emergencias',url:'https://hispanic-wealth.teachable.com/p/fondo-de-emergencias2',thumbnail:null,questionRefs:['0-0-1'],areaIndices:[0],reason:'Puede darte una guía práctica para preparar reservas frente a imprevistos.'},
-  {id:'fraud',name:'Prevención de fraudes y robo de identidad',url:'https://hispanic-wealth.teachable.com/p/prevencion-de-fraudes-y-robo-de-identidad1',thumbnail:null,questionRefs:[],areaIndices:[],reason:'Una opción para profundizar en la protección de tu información y tu seguridad financiera.'}
+  {id:'money',name:'¿Por qué no nos alcanza el dinero?',url:'https://hispanic-wealth.teachable.com/l/pdp/por-que-no-nos-alcanza-el-dinero',thumbnail:'por-que-no-nos-alcanza-el-dinero.png',questionRefs:['0-0-0','5-0-1'],areaIndices:[0,5],reason:'Te puede ayudar a ordenar gastos, presupuesto y decisiones cotidianas con el dinero.'},
+  {id:'emergency',name:'Fondo de emergencias',url:'https://hispanic-wealth.teachable.com/p/fondo-de-emergencias2',thumbnail:'fondo-de-emergencias.png',questionRefs:['0-0-1'],areaIndices:[0],reason:'Puede darte una guía práctica para preparar reservas frente a imprevistos.'},
+  {id:'fraud',name:'Prevención de fraudes y robo de identidad',url:'https://hispanic-wealth.teachable.com/p/prevencion-de-fraudes-y-robo-de-identidad1',thumbnail:'prevencion-de-fraudes-y-robo-de-identidad.png',questionRefs:[],areaIndices:[],reason:'Una opción para profundizar en la protección de tu información y tu seguridad financiera.'}
 ];
 const feedbackMessages={
   high:['¡Muy bien! Cerraste esta sección con una base sólida. Ahora veamos cómo se conecta con el siguiente tema.','Tu desempeño muestra dominio en varias ideas importantes de esta área. El siguiente paso puede ayudarte a ampliar esa perspectiva.'],
