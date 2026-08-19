@@ -50,6 +50,8 @@
           <img class="section-break-logo" src="hpw.png" alt="">
           <span class="section-break-kicker">VAS AVANZANDO</span>
           <strong id="sectionBreakTitle">Siguiente sección</strong>
+          <span class="section-break-score" id="sectionBreakScore"></span>
+          <p class="section-break-feedback" id="sectionBreakFeedback"></p>
           <p id="sectionBreakText">Cada respuesta te acerca a una imagen más clara de tus finanzas.</p>
           <span class="section-break-progress" id="sectionBreakProgress"></span>
           <button class="continue-section" id="continueSection">Continuar <span>→</span></button>
@@ -69,9 +71,11 @@
     <section class="results view" id="resultsView">
       <div class="results-head"><span class="eyebrow"><i></i> Tu diagnóstico está listo</span><h1>Tu punto de partida,<br><em>con toda claridad.</em></h1><p>No es una nota: es un mapa para tomar mejores decisiones.</p></div>
       <div class="result-grid">
-        <article class="score-card"><div class="score-ring" id="scoreRing"><div><strong id="finalScore">0</strong><small>/ 100</small></div></div><div><span class="result-label">TU NIVEL</span><h2 id="finalLevel">Principiante</h2><p id="finalMessage"></p></div></article>
-        <article class="areas-card"><div class="card-title"><div><span class="result-label">TU MAPA FINANCIERO</span><h2>Fortalezas por área</h2></div><span>0—100</span></div><div id="areaResults"></div></article>
-        <article class="recommendations"><span class="result-label">TU SIGUIENTE PASO</span><h2>Recomendaciones para ti</h2><div id="recommendations"></div></article>
+        <article class="score-card"><div class="score-ring" id="scoreRing"><div><strong id="finalScore">0</strong><small>/ 100</small></div></div><div><span class="result-label">TU NIVEL</span><h2 id="finalLevel">Conocimientos en desarrollo</h2><p id="finalMessage"></p></div></article>
+        <article class="areas-card"><div class="card-title"><div><span class="result-label">TU MAPA FINANCIERO</span><h2>Desempeño por área</h2></div><span>0—100</span></div><div id="areaResults"></div></article>
+        <article class="insight-card"><span class="result-label">LO QUE DESTACA</span><h2>Tus fortalezas</h2><div id="strengths"></div></article>
+        <article class="insight-card focus-card"><span class="result-label">TU PRÓXIMO ENFOQUE</span><h2>Áreas para reforzar</h2><div id="focusAreas"></div></article>
+        <article class="recommendations"><span class="result-label">APRENDE A TU RITMO</span><h2>Tu siguiente paso recomendado</h2><p class="recommendation-intro" id="recommendationIntro"></p><div id="recommendations"></div></article>
       </div>
       <div class="result-actions"><button class="primary" id="downloadButton">Descargar resultado ↓</button><button class="secondary" id="shareButton">Compartir diagnóstico ↗</button><button class="text-button" id="restartButton">Repetir evaluación</button></div>
       <p class="disclaimer">Este diagnóstico es educativo y no constituye asesoramiento financiero, fiscal, legal o contable.</p>
