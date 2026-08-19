@@ -26,6 +26,14 @@ const areas = [
     avanzado:['Sé cómo retirar fondos de forma fiscalmente eficiente.','Tengo una estrategia para generar flujo de efectivo predecible en el retiro.','He evaluado si las anualidades son adecuadas para mi situación.']},learn:'Proyecta ingresos y gastos del retiro e incluye salud, vivienda e inflación.'}
 ];
 const options=[{label:'Sí, totalmente',value:'yes',score:1},{label:'En parte',value:'partial',score:.5},{label:'No',value:'no',score:0},{label:'No aplica a mi situación',value:'na',score:null},{label:'No lo sé',value:'unknown',score:null}];
+const areaIntroductions=[
+  'Empezaremos por cómo organizas tu dinero, construyes un fondo de emergencia y haces crecer tus ahorros.',
+  'Aquí veremos cómo imaginas tu retiro, cómo inviertes para alcanzarlo y qué decisiones pueden darte más tranquilidad.',
+  'En esta sección exploraremos tus hábitos fiscales, tus documentos y las oportunidades para planificar mejor tus impuestos.',
+  'Ahora revisaremos cómo proteges tus ingresos, tu salud, tus bienes y a las personas importantes para ti.',
+  'Esta parte se centra en testamentos, beneficiarios y decisiones que ayudan a cuidar tu patrimonio en el futuro.',
+  'Cerraremos mirando tus ingresos, gastos y estrategias para construir un retiro más predecible.'
+];
 let state={area:0,level:0,index:0,answers:{},learn:[],wrong:0}; const levels=['inicial','intermedio','avanzado'];
 const $=id=>document.getElementById(id); const views=['welcomeView','quizView','resultsView'];
 function show(id){views.forEach(v=>$(v).classList.toggle('active',v===id));window.scrollTo(0,0)}
@@ -46,7 +54,8 @@ function updateCoach(){const answered=Object.values(state.answers).filter(a=>a.a
   else{$('coachKicker').textContent='TU COMPAÑERA DE VIAJE';$('coachTitle').innerHTML='Empecemos<br>por lo esencial.';$('coachText').textContent='No hay respuestas malas. Lo importante es saber dónde estás hoy.'}}
 function unlockNavigation(){$('nextButton').disabled=!state.answers[key()];$('backButton').disabled=Object.keys(state.answers).length===0}
 function fadeInQuestion(){const wrap=$('questionWrap');wrap.classList.remove('question-fade-out');void wrap.offsetWidth;wrap.classList.add('question-fade-in');setTimeout(()=>wrap.classList.remove('question-fade-in'),1000);unlockNavigation()}
-function showSectionBreak(){const area=areas[state.area];$('sectionBreakTitle').textContent=area.name;$('sectionBreakText').textContent=`Ya has avanzado un área. Sigue así: cada respuesta te acerca a una imagen más clara de tus finanzas.`;$('sectionBreakProgress').textContent=`Área ${state.area+1} de ${areas.length}`;$('sectionBreak').hidden=false;setTimeout(()=>{$('sectionBreak').hidden=true;$('questionWrap').classList.remove('section-paused');fadeInQuestion()},2200)}
+function showSectionBreak(){const area=areas[state.area];$('sectionBreakTitle').textContent=area.name;$('sectionBreakText').textContent=areaIntroductions[state.area];$('sectionBreakProgress').textContent=`Área ${state.area+1} de ${areas.length}`;$('sectionBreak').hidden=false;$('continueSection').focus()}
+function continueSection(){$('sectionBreak').hidden=true;$('questionWrap').classList.remove('section-paused');fadeInQuestion()}
 function navigate(areaChanged){const wrap=$('questionWrap');$('nextButton').disabled=true;$('backButton').disabled=true;wrap.classList.remove('question-fade-in');wrap.classList.add('question-fade-out');setTimeout(()=>{render();if(areaChanged){wrap.classList.add('section-paused');showSectionBreak()}else fadeInQuestion()},1000)}
 function next(){const a=state.answers[key()];if(!a)return;const previousArea=state.area;if(a.value==='no')state.wrong++;else if(a.score===1)state.wrong=0;
   const qs=areas[state.area].questions[levels[state.level]];if(state.index<qs.length-1 && state.wrong<3)state.index++;
@@ -62,6 +71,7 @@ function finish(){save();const valid=Object.values(state.answers).filter(a=>a.sc
 function start(fresh=true){if(fresh){state={area:0,level:0,index:0,answers:{},learn:[],wrong:0};save()}show('quizView');$('saveExit').hidden=false;render()}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2500)}
 $('startButton').onclick=()=>start();$('resumeButton').onclick=()=>start(false);$('nextButton').onclick=next;$('backButton').onclick=back;$('saveExit').onclick=()=>{save();show('welcomeView');$('saveExit').hidden=true;toast('Progreso guardado en este dispositivo')};
+$('continueSection').onclick=continueSection;
 $('learnMore').onchange=e=>{state.learn=e.target.checked?[...new Set([...state.learn,key()])]:state.learn.filter(x=>x!==key());save()};$('restartButton').onclick=()=>start();
 $('shareButton').onclick=async()=>{const text=`Mi diagnóstico financiero en Clara: ${$('finalScore').textContent}/100 — nivel ${$('finalLevel').textContent}.`;if(navigator.share)await navigator.share({title:'Mi diagnóstico financiero',text});else{await navigator.clipboard.writeText(text);toast('Resultado copiado al portapapeles')}};
 $('downloadButton').onclick=()=>{window.print()};if(localStorage.getItem('claraProgress')){$('resumeButton').hidden=false;try{state=JSON.parse(localStorage.getItem('claraProgress'))}catch{localStorage.removeItem('claraProgress')}}
