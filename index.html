@@ -22,8 +22,15 @@
         <span class="eyebrow"><i></i> Diagnóstico financiero inteligente</span>
         <h1>Descubre cuánto sabes.<br><em>Crece desde ahí.</em></h1>
         <p>Una conversación adaptada a ti para conocer tus fortalezas financieras y descubrir, sin juicios, tu siguiente paso.</p>
+        <form class="participant-form" id="participantForm">
+          <label for="participantName">Nombre completo</label>
+          <input id="participantName" name="name" type="text" autocomplete="name" required>
+          <label for="participantEmail">Correo electrónico</label>
+          <input id="participantEmail" name="email" type="email" autocomplete="email" required>
+          <label class="consent-label"><input id="participantConsent" name="consent" type="checkbox" required><span></span> Acepto que Hispanic Wealth recopile y almacene mi nombre, correo electrónico, respuestas, progreso y resultados de esta actividad para enviarme mi diagnóstico y dar seguimiento a mi participación. Entiendo que puedo solicitar información sobre el uso de mis datos.</label>
+          <button class="primary" id="startButton" type="submit">Comenzar diagnóstico <span>→</span></button>
+        </form>
         <div class="hero-actions">
-          <button class="primary" id="startButton">Comenzar diagnóstico <span>→</span></button>
           <button class="resume" id="resumeButton" hidden>Continuar mi progreso</button>
         </div>
         <div class="trust-row"><span>◷ &nbsp;8–12 minutos</span><span>◆ &nbsp;100% privado</span><span>✦ &nbsp;Resultado personalizado</span></div>
