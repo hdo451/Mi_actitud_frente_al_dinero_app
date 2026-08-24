@@ -6,7 +6,7 @@ import {
   professionalReportToText,
 } from './money-profile-engine.js';
 
-const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzXGmR6kK2gjH-Jj91u3H3o-B1REqv-h491NGTIoOp7-lUOo-sA45HpoNlDSCrA44lt/exec';
+const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxxLSqe8tl9FA1ez6pRSiM0GOOA78y4I3NLte2IimhdY-Nv0zqmCmRcILG2QpOQWl_O/exec';
 
 const questionnaire = getQuestionnaireDefinition();
 const questions = questionnaire.questions;
