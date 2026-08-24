@@ -6,6 +6,8 @@ import {
   professionalReportToText,
 } from './money-profile-engine.js';
 
+const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzXGmR6kK2gjH-Jj91u3H3o-B1REqv-h491NGTIoOp7-lUOo-sA45HpoNlDSCrA44lt/exec';
+
 const questionnaire = getQuestionnaireDefinition();
 const questions = questionnaire.questions;
 const responseOptions = Object.entries(questionnaire.responseScale).map(([value, label]) => ({
@@ -343,9 +345,9 @@ function renderReport(report) {
   const autonomy = report.dimensions.find(dimension => dimension.dimension === 'autonomy');
   const dimensionLabels = Object.fromEntries(report.dimensions.map(dimension => [dimension.dimension, dimension.label]));
 
-  $('finalLevel').textContent = 'Reporte profesional determinístico';
+  $('finalLevel').textContent = 'Tu lectura financiera';
   $('finalMessage').textContent = report.executiveSummary;
-  $('reportMetadata').textContent = `Versión ${report.metadata.reportVersion} · ${report.metadata.usesGenerativeAI ? 'Con IA generativa' : 'Sin IA generativa'}`;
+  $('reportMetadata').textContent = 'Lectura personal sobre la relación con el dinero';
   $('primaryProfileCodes').innerHTML = report.dimensions.map(dimension => `
     <span class="primary-code-item"><small>${escapeHtml(dimension.label)}</small><strong>${escapeHtml(dimension.code)}</strong></span>
   `).join('');
@@ -403,6 +405,7 @@ function finish() {
     };
 
     localStorage.setItem(lastAssessmentStorageKey, JSON.stringify(auditableRecord));
+    syncCompletedAssessment_(auditableRecord, report);
     lastReport = report;
     renderReport(report);
     clearProgress();
@@ -413,6 +416,27 @@ function finish() {
     console.error(error);
     toast('No fue posible calcular el perfil. Revisa que todas las afirmaciones estén respondidas.');
   }
+}
+
+function syncCompletedAssessment_(assessment, report) {
+  if (!APPS_SCRIPT_ENDPOINT) return;
+
+  const payload = {
+    event: 'complete',
+    attemptId: assessment.assessmentId,
+    autonomyApplicable: assessment.autonomyApplicable,
+    answers: assessment.answers,
+    report,
+    reportHtml: professionalReportToHtml(report, {title: 'Mi actitud frente al dinero'}),
+    metadata: assessment.metadata,
+  };
+
+  fetch(APPS_SCRIPT_ENDPOINT, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload),
+  }).catch(error => console.error('No fue posible sincronizar el resultado', error));
 }
 
 function start(fresh = true) {

@@ -196,9 +196,7 @@ export function composeProfessionalReport(rawAnswers, options = {}) {
     recommendations,
     reflectionQuestions,
     methodology: {
-      status: "Prototipo teórico determinístico pendiente de validación empírica.",
       scoring: "Las seis dimensiones de estilo usan intensidad y regulación. Autonomía y poder económico se interpreta como módulo contextual de experiencias reportadas, no como rasgo de personalidad.",
-      interactions: "Los pair signals y emergent patterns son reglas teóricas predefinidas. No representan correlaciones estadísticas observadas hasta que sean evaluadas con datos de pilotaje.",
       causality: "El reporte no establece causalidad. Las expresiones como puede, coincide o aparece junto con describen compatibilidad teórica entre respuestas.",
       scorePreservation: "Las interacciones nunca cambian los códigos ni las puntuaciones base; sólo modifican contexto, prioridad narrativa y confianza atribucional.",
       displayScores: "Los valores 0–100, cuando se muestran, son transformaciones lineales para visualización; no son percentiles normativos.",

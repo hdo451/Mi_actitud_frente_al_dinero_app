@@ -1,115 +1,147 @@
 function doGet() {
-  return ContentService.createTextOutput(JSON.stringify({ok: true})).setMimeType(ContentService.MimeType.JSON);
+  return json_({ok: true, service: 'money-profile-engine'});
 }
 
 function doPost(event) {
+  const lock = LockService.getScriptLock();
   try {
     const payload = JSON.parse(event.postData.contents);
-    const sheet = getSheet_();
-    const lock = LockService.getScriptLock();
+    if (!payload.attemptId) throw new Error('Falta attemptId');
+
     lock.waitLock(10000);
-    try {
-      const row = findOrCreateRow_(sheet, payload);
-      writePayload_(sheet, row, payload);
-    } finally {
-      lock.releaseLock();
-    }
-    return json_({ok: true});
+    const sheet = getSheet_();
+    setupSheet();
+    const row = findOrCreateRow_(sheet, payload);
+    writePayload_(sheet, row, payload);
+    return json_({ok: true, attemptId: payload.attemptId});
   } catch (error) {
     console.error(error);
     return json_({ok: false, error: error.message});
+  } finally {
+    if (lock.hasLock()) lock.releaseLock();
   }
 }
 
 function setupSheet() {
   const sheet = getSheet_();
-  if (sheet.getLastRow() === 0) sheet.appendRow(baseHeaders_());
+  if (sheet.getLastRow() === 0) sheet.getRange(1, 1, 1, baseHeaders_().length).setValues([baseHeaders_()]);
   ensureHeaders_(sheet, baseHeaders_());
   sheet.setFrozenRows(1);
-}
-
-function processInactiveAttempts() {
-  const sheet = getSheet_();
-  const values = sheet.getDataRange().getValues();
-  if (values.length < 2) return;
-  const headers = values[0];
-  const columns = indexHeaders_(headers);
-  const now = new Date();
-  values.slice(1).forEach((row, offset) => {
-    const record = recordFromRow_(headers, row);
-    if (!record.attemptId || record.status !== 'En progreso') return;
-    const start = new Date(record.startDate);
-    const age = Math.floor((now - start) / 86400000);
-    const sheetRow = offset + 2;
-    if (age >= CONFIG.ABANDON_AFTER_DAYS) {
-      setCell_(sheet, sheetRow, columns['Estado'], 'Abandonado');
-      setCell_(sheet, sheetRow, columns['Fecha de abandono'], now);
-      if (record.abandonedSent !== 'Sí') {
-        const body = abandonedEmailBody_(record);
-        sendParticipantEmail_(record, `${CONFIG.COURSE_NAME}: prueba cerrada`, body);
-        setCell_(sheet, sheetRow, columns['Aviso de abandono enviado'], 'Sí');
-      }
-    } else if (age >= CONFIG.FINAL_WARNING_AFTER_DAYS && record.finalWarningSent !== 'Sí') {
-      const body = reminderEmailBody_(record, 1);
-      sendParticipantEmail_(record, `${CONFIG.COURSE_NAME}: queda un día`, body);
-      setCell_(sheet, sheetRow, columns['Aviso de 13 días enviado'], 'Sí');
-    } else if (age >= CONFIG.REMINDER_AFTER_DAYS && record.reminderSent !== 'Sí') {
-      const body = reminderEmailBody_(record, CONFIG.ABANDON_AFTER_DAYS - age);
-      sendParticipantEmail_(record, `${CONFIG.COURSE_NAME}: continúa tu diagnóstico`, body);
-      setCell_(sheet, sheetRow, columns['Recordatorio de 7 días enviado'], 'Sí');
-    }
-  });
+  sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight('bold');
 }
 
 function findOrCreateRow_(sheet, payload) {
   const values = sheet.getDataRange().getValues();
-  const headers = values.length ? values[0] : [];
-  const attemptColumn = headers.indexOf('ID de intento');
-  if (attemptColumn >= 0) {
-    const rowIndex = values.slice(1).findIndex(row => String(row[attemptColumn]) === String(payload.attemptId));
-    if (rowIndex >= 0) return rowIndex + 2;
+  const headers = values[0] || [];
+  const idColumn = headers.indexOf('ID de intento');
+  if (idColumn >= 0) {
+    const found = values.slice(1).findIndex(row => String(row[idColumn]) === String(payload.attemptId));
+    if (found >= 0) return found + 2;
   }
-  ensureHeaders_(sheet, baseHeaders_());
   return sheet.getLastRow() + 1;
 }
 
 function writePayload_(sheet, row, payload) {
-  const answerHeaders = Object.keys(payload.answers || {}).map(key => `Respuesta | ${key}`);
-  const learnHeaders = (payload.learn || []).map(item => `Aprender más | ${item.topic}`);
-  const sectionHeaders = (payload.sectionScores || []).map(section => `Resultado | ${section.area.name}`);
-  ensureHeaders_(sheet, answerHeaders.concat(sectionHeaders, learnHeaders));
+  const report = payload.report || {};
+  const answerHeaders = Object.keys(payload.answers || {}).map(id => `Respuesta | ${id}`);
+  const dimensionHeaders = (report.dimensions || [])
+    .filter(dimension => dimension.dimension !== 'autonomy')
+    .map(dimension => `Resultado | ${dimension.label}`);
+  ensureHeaders_(sheet, answerHeaders.concat(dimensionHeaders));
+
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const existing = row <= sheet.getLastRow() ? sheet.getRange(row, 1, 1, headers.length).getValues()[0] : Array(headers.length).fill('');
+  const existing = row <= sheet.getLastRow()
+    ? sheet.getRange(row, 1, 1, headers.length).getValues()[0]
+    : Array(headers.length).fill('');
   const data = Object.fromEntries(headers.map((header, index) => [header, existing[index]]));
   const now = new Date();
+  const metadata = payload.metadata || {};
+
   data['ID de intento'] = payload.attemptId;
-  data['Nombre completo'] = payload.user?.name || data['Nombre completo'] || '';
-  data['Correo electrónico'] = payload.user?.email || data['Correo electrónico'] || '';
-  data['Consentimiento'] = payload.user?.consent ? 'Sí' : data['Consentimiento'] || 'No';
-  data['Fecha de inicio'] = data['Fecha de inicio'] || now;
-  data['Última actividad'] = now;
-  data['Último paso alcanzado'] = `${payload.area + 1}-${payload.level + 1}-${payload.index + 1}`;
-  data['Porcentaje de progreso'] = progress_(payload);
-  if (payload.event === 'complete') {
-    data['Estado'] = 'Finalizado';
-    data['Fecha de finalización'] = now;
-    data['Resultado final'] = payload.diagnosis?.overall ?? '';
-    (payload.sectionScores || []).forEach(section => { data[`Resultado | ${section.area.name}`] = `${section.score}%`; });
-    const record = {...recordFromRow_(headers, Object.values(data)), sectionScores: payload.sectionScores || []};
-    const body = resultEmailBody_(record);
-    sendParticipantEmail_(record, `${CONFIG.COURSE_NAME}: tus resultados`, body);
-    sendAdminCopy_(record, `${CONFIG.COURSE_NAME}: nuevo resultado`, body);
-    data['Correo de resultados enviado'] = 'Sí';
-  } else if (!data['Estado']) data['Estado'] = 'En progreso';
-  Object.entries(payload.answers || {}).forEach(([key, answer]) => { data[`Respuesta | ${key}`] = answer.value; });
-  (payload.learn || []).forEach(item => { data[`Aprender más | ${item.topic}`] = item.topic; });
+  data['Fecha de recepción'] = now;
+  data['Fecha de inicio'] = metadata.startedAt || data['Fecha de inicio'] || now;
+  data['Fecha de finalización'] = metadata.completedAt || now;
+  data['Estado'] = payload.event === 'complete' ? 'Finalizado' : 'Recibido';
+  data['Versión instrumento'] = report.metadata?.instrumentVersion || '';
+  data['Versión reporte'] = report.metadata?.reportVersion || '';
+  data['Resumen ejecutivo'] = report.executiveSummary || '';
+  data['Aplicabilidad autonomía'] = payload.autonomyApplicable === false ? 'No' : 'Sí';
+  data['Patrones principales'] = labels_(report.primaryPatterns);
+  data['Patrones secundarios'] = labels_(report.secondaryPatterns);
+  data['Recursos protectores'] = labels_(report.protectiveResources);
+  data['Tensiones y contexto'] = labels_(report.tensionsAndContext);
+  data['Recomendaciones'] = texts_(report.recommendations, 'text');
+  data['Preguntas de reflexión'] = texts_(report.reflectionQuestions, 'question');
+
+  (report.dimensions || [])
+    .filter(dimension => dimension.dimension !== 'autonomy')
+    .forEach(dimension => {
+      data[`Resultado | ${dimension.label}`] = dimension.intensity?.display100 ?? '';
+    });
+  Object.entries(payload.answers || {}).forEach(([id, answer]) => {
+    data[`Respuesta | ${id}`] = typeof answer === 'object' ? answer.value : answer;
+  });
+
+  if (!data['Reporte']) data['Reporte'] = createReportFile_(payload);
   sheet.getRange(row, 1, 1, headers.length).setValues([headers.map(header => data[header] ?? '')]);
 }
 
-function baseHeaders_() { return ['ID de intento','Nombre completo','Correo electrónico','Consentimiento','Fecha de inicio','Última actividad','Último paso alcanzado','Porcentaje de progreso','Estado','Fecha de finalización','Fecha de abandono','Resultado final','Correo de resultados enviado','Recordatorio de 7 días enviado','Aviso de 13 días enviado','Aviso de abandono enviado']; }
-function ensureHeaders_(sheet, required) { const current = sheet.getLastColumn() ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0] : []; const additions = required.filter(header => header && !current.includes(header)); if (additions.length) sheet.getRange(1, current.length + 1, 1, additions.length).setValues([additions]); }
-function indexHeaders_(headers) { return Object.fromEntries(headers.map((header, index) => [header, index + 1])); }
-function setCell_(sheet, row, column, value) { if (column) sheet.getRange(row, column).setValue(value); }
-function progress_(payload) { const answered = Object.keys(payload.answers || {}).length; return Math.round(answered / Math.max(1, payload.totalQuestions || answered) * 100) / 100; }
-function recordFromRow_(headers, row) { const get = name => row[headers.indexOf(name)]; return {attemptId:get('ID de intento'),name:get('Nombre completo'),email:get('Correo electrónico'),startDate:get('Fecha de inicio'),status:get('Estado'),result:get('Resultado final'),reminderSent:get('Recordatorio de 7 días enviado'),finalWarningSent:get('Aviso de 13 días enviado'),abandonedSent:get('Aviso de abandono enviado')}; }
-function json_(data) { return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON); }
+function createReportFile_(payload) {
+  if (CONFIG.REPORT_FOLDER_ID.includes('REEMPLAZAR')) {
+    throw new Error('Configura REPORT_FOLDER_ID antes de recibir resultados');
+  }
+  const folder = DriveApp.getFolderById(CONFIG.REPORT_FOLDER_ID);
+  const safeId = String(payload.attemptId || Date.now()).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filename = `${CONFIG.REPORT_FILE_PREFIX} - ${safeId}.html`;
+  const html = embedLogo_(payload.reportHtml || `<pre>${escapeHtml_(JSON.stringify(payload.report || payload, null, 2))}</pre>`);
+  const file = folder.createFile(Utilities.newBlob(html, 'text/html', filename));
+  return file.getUrl();
+}
+
+function embedLogo_(html) {
+  const files = DriveApp.getFilesByName(CONFIG.REPORT_LOGO_FILE_NAME);
+  if (!files.hasNext()) return html;
+  const blob = files.next().getBlob();
+  const dataUri = `data:${blob.getContentType()};base64,${Utilities.base64Encode(blob.getBytes())}`;
+  return html.replaceAll('src="Hispanic_Wealth.png"', `src="${dataUri}"`);
+}
+
+function baseHeaders_() {
+  const headers = [
+    'Reporte', 'ID de intento', 'Fecha de recepción', 'Fecha de inicio',
+    'Fecha de finalización', 'Estado', 'Versión instrumento', 'Versión reporte',
+    'Aplicabilidad autonomía', 'Resumen ejecutivo', 'Patrones principales',
+    'Patrones secundarios', 'Recursos protectores', 'Tensiones y contexto',
+    'Recomendaciones', 'Preguntas de reflexión'
+  ];
+  return headers.concat(Array.from({length: 49}, (_, index) => `Respuesta | ${index + 1}`));
+}
+
+function labels_(items) {
+  return (items || []).map(item => item.title || item.heading || '').filter(Boolean).join(' | ');
+}
+
+function texts_(items, property) {
+  return (items || []).map(item => item[property] || '').filter(Boolean).join(' | ');
+}
+
+function ensureHeaders_(sheet, required) {
+  const current = sheet.getLastColumn()
+    ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+    : [];
+  const additions = required.filter(header => header && !current.includes(header));
+  if (additions.length) {
+    sheet.getRange(1, current.length + 1, 1, additions.length).setValues([additions]);
+  }
+}
+
+function escapeHtml_(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
+}
+
+function json_(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}

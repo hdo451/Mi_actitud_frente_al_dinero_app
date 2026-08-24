@@ -22,8 +22,6 @@ export function professionalReportToText(report) {
   const lines = [];
   const name = report.metadata.subjectName ? ` — ${report.metadata.subjectName}` : "";
   lines.push(`Perfil psicológico-financiero${name}`);
-  lines.push(`Versión del reporte: ${report.metadata.reportVersion}`);
-  lines.push(`Método: reglas determinísticas; IA generativa: no`);
   lines.push("");
   lines.push("Resumen ejecutivo");
   lines.push(report.executiveSummary);
@@ -167,11 +165,13 @@ export function professionalReportToHtml(report, { title = "Perfil psicológico-
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>${escapeHtml(title)}${subject}</title>
   <style>
-    :root { color-scheme: light; --ink:#1b2430; --muted:#5d6978; --line:#dde3ea; --paper:#ffffff; --soft:#f5f7fa; --accent:#274c77; }
+  :root { color-scheme: light; --ink:#172b4d; --muted:#5f6f85; --line:#dce4ed; --paper:#ffffff; --soft:#f4f7fa; --accent:#173b68; --gold:#d99b18; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--ink); background:var(--soft); line-height:1.55; }
     main { max-width: 980px; margin: 0 auto; background:var(--paper); padding:56px 64px 80px; }
-    header { padding-bottom:28px; border-bottom:1px solid var(--line); margin-bottom:32px; }
+    header { padding-bottom:28px; border-bottom:3px solid var(--gold); margin-bottom:32px; }
+    .brand { display:flex; align-items:center; min-height:58px; margin-bottom:28px; }
+    .brand img { width:250px; max-width:75%; height:auto; display:block; }
     h1 { font-size:34px; line-height:1.15; margin:0 0 10px; font-weight:650; }
     h2 { font-size:24px; margin:42px 0 18px; font-weight:650; }
     h3 { font-size:18px; margin:6px 0 8px; }
@@ -203,7 +203,8 @@ export function professionalReportToHtml(report, { title = "Perfil psicológico-
 <main>
   <header>
     <h1>${escapeHtml(title)}${subject}</h1>
-    <div class="subtitle">Reporte determinístico · versión ${escapeHtml(report.metadata.reportVersion)} · sin IA generativa</div>
+    <div class="brand"><img src="Hispanic_Wealth.png" alt="Hispanic Wealth"></div>
+    <div class="subtitle">Lectura personal sobre la relación con el dinero</div>
   </header>
 
   <section>
@@ -238,8 +239,6 @@ export function professionalReportToHtml(report, { title = "Perfil psicológico-
 
   <section class="method">
     <h2>Nota metodológica</h2>
-    <p>${escapeHtml(report.methodology.status)}</p>
-    <p>${escapeHtml(report.methodology.interactions)}</p>
     <p>${escapeHtml(report.methodology.causality)}</p>
     <ul>${report.methodology.limitations.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
   </section>

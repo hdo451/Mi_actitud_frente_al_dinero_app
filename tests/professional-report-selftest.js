@@ -89,9 +89,10 @@ assert.ok(report.technical.pairSignals.length >= 1);
 const text = professionalReportToText(report);
 const html = professionalReportToHtml(report);
 assert.ok(text.includes("Resumen ejecutivo"));
-assert.ok(text.includes("IA generativa: no"));
+assert.ok(!text.includes("IA generativa: no"));
 assert.ok(html.startsWith("<!doctype html>"));
-assert.ok(html.includes("sin IA generativa"));
+assert.ok(!html.includes("Reporte determinístico"));
+assert.ok(html.includes("Hispanic_Wealth.png"));
 assert.ok(html.includes("Caso de prueba"));
 
 // 6) Autonomy not applicable should work with null answers 43-49.
