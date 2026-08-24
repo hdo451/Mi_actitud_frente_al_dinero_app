@@ -58,6 +58,8 @@ function writePayload_(sheet, row, payload) {
   const metadata = payload.metadata || {};
 
   data['ID de intento'] = payload.attemptId;
+  data['Nombre'] = payload.participant?.name || '';
+  data['Correo electrónico'] = payload.participant?.email || '';
   data['Fecha de recepción'] = now;
   data['Fecha de inicio'] = metadata.startedAt || data['Fecha de inicio'] || now;
   data['Fecha de finalización'] = metadata.completedAt || now;
@@ -88,6 +90,11 @@ function writePayload_(sheet, row, payload) {
     const reportUrl = createReportFile_(payload);
     const reportColumn = headers.indexOf('Reporte') + 1;
     if (reportColumn > 0) sheet.getRange(row, reportColumn).setValue(reportUrl);
+    if (payload.participant?.email) {
+      sendReportEmail_(payload, reportUrl);
+      const emailColumn = headers.indexOf('Correo enviado') + 1;
+      if (emailColumn > 0) sheet.getRange(row, emailColumn).setValue('Sí');
+    }
   }
 }
 
@@ -116,11 +123,24 @@ function baseHeaders_() {
   const headers = [
     'Reporte', 'ID de intento', 'Fecha de recepción', 'Fecha de inicio',
     'Fecha de finalización', 'Estado', 'Versión instrumento', 'Versión reporte',
-    'Aplicabilidad autonomía', 'Resumen ejecutivo', 'Patrones principales',
+    'Aplicabilidad autonomía', 'Nombre', 'Correo electrónico', 'Correo enviado', 'Resumen ejecutivo', 'Patrones principales',
     'Patrones secundarios', 'Recursos protectores', 'Tensiones y contexto',
     'Recomendaciones', 'Preguntas de reflexión'
   ];
   return headers.concat(Array.from({length: 49}, (_, index) => `Respuesta | ${index + 1}`));
+}
+
+function sendReportEmail_(payload, reportUrl) {
+  const email = payload.participant.email;
+  const name = payload.participant.name || 'participante';
+  const html = embedLogo_(payload.reportHtml || `<pre>${escapeHtml_(JSON.stringify(payload.report || payload, null, 2))}</pre>`);
+  const attachment = Utilities.newBlob(html, 'text/html', `Reporte financiero - ${payload.attemptId}.html`);
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Tu lectura financiera',
+    htmlBody: `<p>Hola ${escapeHtml_(name)},</p><p>Adjuntamos tu reporte completo. También puedes abrirlo aquí: <a href="${reportUrl}">ver reporte</a>.</p><p>Hispanic Wealth</p>`,
+    attachments: [attachment]
+  });
 }
 
 function labels_(items) {

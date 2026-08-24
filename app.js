@@ -6,7 +6,7 @@ import {
   professionalReportToText,
 } from './money-profile-engine.js';
 
-const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxxLSqe8tl9FA1ez6pRSiM0GOOA78y4I3NLte2IimhdY-Nv0zqmCmRcILG2QpOQWl_O/exec';
+const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxWOrx1DKRysEy2P1Ew8Fmbg5SCHlhdVmIIN2_PhDePGdpzL6TeRMWYx4jrFVcnfjU/exec';
 
 const questionnaire = getQuestionnaireDefinition();
 const questions = questionnaire.questions;
@@ -51,6 +51,7 @@ function createInitialState() {
     autonomyApplicable: null,
     assessmentId: null,
     startedAt: null,
+    participant: {name: '', email: ''},
   };
 }
 
@@ -394,6 +395,7 @@ function finish() {
         startedAt: state.startedAt,
         completedAt: new Date().toISOString(),
       },
+      participant: state.participant,
     });
     const auditableRecord = {
       ...storedAssessment,
@@ -425,6 +427,7 @@ function syncCompletedAssessment_(assessment, report) {
     event: 'complete',
     attemptId: assessment.assessmentId,
     autonomyApplicable: assessment.autonomyApplicable,
+    participant: assessment.participant,
     answers: assessment.answers,
     report,
     reportHtml: professionalReportToHtml(report, {title: 'Mi actitud frente al dinero'}),
@@ -441,7 +444,9 @@ function syncCompletedAssessment_(assessment, report) {
 
 function start(fresh = true) {
   if (fresh) {
+    const participant = state.participant;
     state = createInitialState();
+    state.participant = participant;
     state.assessmentId = createAssessmentId();
     state.startedAt = new Date().toISOString();
     saveProgress();
@@ -527,7 +532,18 @@ function loadSavedProgress() {
   }
 }
 
-$('startButton').onclick = () => start(true);
+$('startButton').onclick = () => {
+  const name = $('participantName').value.trim();
+  const email = $('participantEmail').value.trim();
+  if (!name || !$('participantEmail').checkValidity()) {
+    $('participantName').reportValidity();
+    $('participantEmail').reportValidity();
+    toast('Escribe tu nombre y un correo válido para recibir el reporte');
+    return;
+  }
+  state.participant = {name, email};
+  start(true);
+};
 $('resumeButton').onclick = () => start(false);
 $('nextButton').onclick = next;
 $('backButton').onclick = back;

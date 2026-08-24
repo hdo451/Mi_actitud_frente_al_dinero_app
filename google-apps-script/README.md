@@ -57,3 +57,5 @@ La migracion queda separada de la logica:
 6. Cambia `APPS_SCRIPT_ENDPOINT` por la nueva URL y vuelve a publicar la app.
 
 No uses IDs de tu cuenta personal en el codigo de la app ni compartas contrasenas. Para una migracion ordenada, conserva este directorio como la fuente versionada del Apps Script y documenta los dos IDs fuera del repositorio.
+
+La app solicita el nombre y el correo antes de comenzar. Al finalizar, Apps Script guarda ambos datos en la fila y envia el reporte al correo indicado usando `MailApp`. La primera ejecucion despues de copiar el `Code.gs` puede pedir tambien permiso para enviar correo.
