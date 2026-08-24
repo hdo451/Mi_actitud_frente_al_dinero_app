@@ -1,56 +1,104 @@
-# Clara - Diagnóstico financiero
+# Money Profile Engine v0.4
 
-Aplicación web estática para el diagnóstico financiero de Hispanic Wealth. La página puede alojarse en GitHub Pages o en cualquier servidor estático. La URL del backend se configura en `syncConfig.endpoint` dentro de `app.js`.
+Motor determinístico de interpretación para un cuestionario prototipo de 49 preguntas y 7 dimensiones de relación psicológica con el dinero.
 
-## Estructura
+## Estado
 
-- `index.html`: pantallas y formulario inicial.
-- `app.js`: preguntas, resultados, progreso local y sincronización opcional.
-- `stiles.css`: estilos.
-- `google-apps-script/`: código para Google Apps Script.
-- `google-sheets/estructura-google-sheet.csv`: encabezado inicial de la hoja única.
+Esta versión completa implementa las cuatro capas diseñadas:
 
-## Flujo de datos
+1. Pair Signals
+2. Emergent Patterns
+3. Context Overrides
+4. Narrative Resolution
 
-Cada intento crea una fila en la pestaña `Respuestas`. Las primeras columnas contienen identidad, consentimiento, progreso, estado, fechas y controles de correo. Después se agregan columnas de respuestas con formato `Respuesta | area-nivel-pregunta` y columnas de interés con formato `Aprender más | nombre del tema`.
+El instrumento sigue siendo un prototipo teórico. Las reglas de interacción no son correlaciones estadísticas observadas y los resultados no constituyen diagnóstico clínico.
 
-Una pregunta omitida o no respondida queda vacía. Si una persona inicia otra vez, se crea un nuevo ID y una nueva fila.
+## Arquitectura
 
-## Instalación inicial
+```text
+49 respuestas (1-6)
+      ↓
+core.js
+      ↓
+7 dimensiones base
+      ↓
+pair-signals.js
+      ↓
+63 señales entre los 21 pares de dimensiones
+      ↓
+emergent-patterns.js
+      ↓
+patrones de segundo y tercer orden
+      ↓
+context-overrides.js
+      ↓
+modificación de atribución/confianza, nunca del score base
+      ↓
+narrative-resolver.js
+      ↓
+3 insights principales + hasta 2 secundarios
+      ↓
+report.js
+```
 
-1. Crea un Google Sheet desde la cuenta administradora.
-2. Renombra la primera pestaña como `Respuestas`.
-3. Importa `google-sheets/estructura-google-sheet.csv` o ejecuta `setupSheet()` en Apps Script.
-4. Copia los archivos de `google-apps-script/` en el editor de Apps Script vinculado al Sheet.
-5. En `Config.gs`, reemplaza `ADMIN_EMAIL` por el correo de Hispanic Wealth.
-6. Publica el proyecto como aplicación web, ejecutándolo como el propietario y permitiendo acceso a quienes tengan el enlace.
-7. Copia la URL `/exec` publicada en `syncConfig.endpoint` dentro de `app.js`.
-8. Ejecuta una prueba completa y autoriza el envío de correos cuando Google lo solicite.
-9. Crea un activador diario para `processInactiveAttempts`.
+## Archivos
 
-La URL de Apps Script no contiene una contraseña. No coloques credenciales privadas en la página web.
+```text
+money-profile-engine.js           punto de entrada externo
+src/core.js                       49 preguntas + scoring base
+src/pair-signals.js               Layer 1
+src/emergent-patterns.js          Layer 2
+src/context-overrides.js          Layer 3
+src/narrative-resolver.js         Layer 4
+src/analysis.js                   orquestador del pipeline
+src/report.js                     reporte JSON determinístico
+src/correlations.js               compatibilidad con versiones previas
+src/index.js                      API pública
+examples/                         ejemplos
+ tests/                           pruebas automáticas
+ docs/                            documentación de integración
+```
 
-## Estados y recordatorios
+## Uso mínimo
 
-- `En progreso`: se asigna al comenzar.
-- `Finalizado`: se asigna al completar y dispara los dos correos de resultados.
-- `Abandonado`: se asigna a los 14 días si sigue en progreso.
+```js
+import {
+  getQuestionnaireDefinition,
+  generateMoneyProfileReport,
+} from "./money-profile-engine.js";
 
-El proceso diario envía un recordatorio al día 7, un aviso de un día restante al día 13 y el aviso de cierre al día 14. Las columnas de control evitan correos duplicados.
+const questionnaire = getQuestionnaireDefinition();
+const answers = Array(49).fill(3);
+const report = generateMoneyProfileReport(answers);
 
-## Migración futura
+console.log(report.executiveSummary);
+console.log(report.primaryInsights);
+```
 
-Para pasar de una cuenta personal a una institucional:
+## Qué nunca cambia por correlaciones
 
-1. Crea un Sheet nuevo con una pestaña `Respuestas`.
-2. Copia la plantilla y los datos históricos que corresponda conservar.
-3. Copia el mismo Apps Script y cambia `ADMIN_EMAIL`.
-4. Autoriza y publica la nueva aplicación web desde la cuenta institucional.
-5. Actualiza únicamente `syncConfig.endpoint` en `app.js`.
-6. Ejecuta las pruebas y conserva el Sheet anterior como respaldo.
+Las respuestas, scores y códigos base son inmutables. Si Security es `S3`, seguirá siendo `S3` después de las cuatro capas. El contexto puede marcarla como amplificada, amortiguada o dependiente del contexto, pero no recodificarla.
 
-Se recomienda usar una cuenta institucional o una unidad compartida de Google Drive para que la propiedad no dependa de una persona.
+## Tests
 
-## Accesos y privacidad
+```bash
+npm test
+```
 
-Comparte el Sheet solo con personas que lo necesiten y asigna permisos de lector, comentador o editor según su función. Define con Hispanic Wealth el texto de consentimiento, el plazo de conservación y el procedimiento para corregir o eliminar datos antes de publicar el sistema.
+## Probar la interfaz web
+
+Como la aplicación usa módulos de JavaScript, ábrela desde un servidor local en lugar de abrir `index.html` directamente:
+
+```bash
+python3 -m http.server 8000
+```
+
+Luego visita `http://localhost:8000`. La interfaz guarda el progreso y la última evaluación en el almacenamiento local del navegador; todavía no envía datos a Apps Script.
+
+## Integración en VS Code
+
+Ver `docs/VSC_INTEGRATION.md`.
+
+## Uso con IA
+
+El engine debe calcular scores y reglas. Un LLM sólo debería usarse después para transformar el JSON estructurado en un informe narrativo más largo. No se recomienda enviar las 49 respuestas al LLM y pedirle que improvise la puntuación.

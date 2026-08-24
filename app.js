@@ -1,95 +1,502 @@
+import {
+  buildStoredAssessment,
+  generateMoneyProfileReport,
+  getQuestionnaireDefinition,
+  reportToText,
+} from './money-profile-engine.js';
 
-const areas = [
-  {name:'Ahorro e inversión',icon:'↗',questions:{
-    inicial:['Sigo un presupuesto y pago mis facturas a tiempo.','Tengo un fondo de emergencia para gastos inesperados.','Conozco el total de mis deudas y cuánto interés pago por ellas.','Entiendo el interés compuesto y el valor del dinero en el tiempo.'],
-    intermedio:['Conozco mi patrimonio neto.','Sé explicar la diferencia entre ahorrar e invertir.','Conozco mi tolerancia al riesgo.','Entiendo cómo la inflación reduce el valor de mis ahorros.'],
-    avanzado:['Sé explicar la diferencia entre una acción y un bono.','Entiendo la relación inversa entre los bonos y las tasas de interés.','Sé diferenciar un fondo mutuo de un ETF.','Mis inversiones están bien diversificadas.']},learn:'Refuerza presupuesto, fondo de emergencia e interés compuesto antes de asumir más riesgo.'},
-  {name:'Inversión para el retiro',icon:'⌛',questions:{
-    inicial:['Tengo una imagen clara de mi retiro y he estimado cuánto necesitaré.','Conozco mi perfil de riesgo y elijo inversiones acordes.','Conozco vehículos de retiro como Roth IRA o 401(k).'],
-    intermedio:['Tengo una meta anual para aumentar mis aportaciones al retiro.','Reviso regularmente que mi portafolio coincida con mi horizonte y riesgo.','He considerado la inflación en mis necesidades de ingreso para el retiro.'],
-    avanzado:['Comprendo la asignación de activos y cómo rebalancear un portafolio.','He investigado inversiones que generan ingresos, como dividendos y anualidades.','Tengo un plan para minimizar impuestos durante el retiro.']},learn:'Calcula tu meta de retiro y automatiza aportaciones periódicas según tu horizonte.'},
-  {name:'Impuestos',icon:'%',questions:{
-    inicial:['Sé preparar y presentar mis impuestos o trabajo con un profesional.','Estoy al corriente con mis impuestos federales y estatales.','Conservo copias de mis declaraciones de los últimos tres años.'],
-    intermedio:['Aprovecho al máximo las cuentas de ahorro con ventajas fiscales.','Comprendo por qué recibir un gran reembolso no siempre es lo óptimo.'],
-    avanzado:['Considero realizar pérdidas de inversiones para compensar ganancias.','Entiendo las ventajas fiscales de donar activos en especie.']},learn:'Organiza tus documentos y conoce las cuentas con ventajas fiscales disponibles en tu país.'},
-  {name:'Seguros',icon:'◇',questions:{
-    inicial:['Tengo un inventario de los bienes y objetos de valor de mi hogar.','Reviso mis pólizas con regularidad.','Tengo cobertura suficiente para proteger mis ingresos y deudas.','Los beneficiarios de mis pólizas están actualizados.'],
-    intermedio:['Conozco los beneficios de salud posteriores al retiro disponibles para mí.','He organizado mi seguro médico para mis necesidades actuales y futuras.','Reviso coberturas y precios en momentos importantes de mi vida.'],
-    avanzado:['He considerado un seguro de cuidados a largo plazo.','Entiendo cómo un seguro de vida puede integrarse en mi planificación patrimonial.']},learn:'Haz un inventario de riesgos y revisa coberturas, exclusiones y beneficiarios una vez al año.'},
-  {name:'Planificación patrimonial',icon:'⌂',questions:{
-    inicial:['He preparado un testamento que especifica cómo dividir mis activos.','He designado beneficiarios en mis cuentas y pólizas.','He nombrado un albacea y guardo mis documentos en un lugar seguro.'],
-    intermedio:['Tengo un poder duradero para mis finanzas y atención médica.','Tengo directrices médicas anticipadas y he evaluado un fideicomiso.','He considerado las obligaciones que recaerían sobre mi patrimonio.'],
-    avanzado:['He considerado estrategias para maximizar mi legado y reducir su carga fiscal.','Gestiono eficazmente mis donaciones y activos benéficos.']},learn:'Empieza por testamento, beneficiarios y poderes; comunica dónde están tus documentos.'},
-  {name:'Ingresos en el retiro',icon:'≈',questions:{
-    inicial:['He realizado un inventario de mis activos.','He preparado un presupuesto para el retiro.','Conozco mis fuentes futuras de ingreso y opciones de beneficios.','Comprendo mis opciones de cobertura médica y sus costos estimados.'],
-    intermedio:['Tengo un plan de vivienda para cuando cambien mi salud o movilidad.','Tengo un plan de contingencia ante discapacidad, enfermedad o fallecimiento de mi pareja.'],
-    avanzado:['Sé cómo retirar fondos de forma fiscalmente eficiente.','Tengo una estrategia para generar flujo de efectivo predecible en el retiro.','He evaluado si las anualidades son adecuadas para mi situación.']},learn:'Proyecta ingresos y gastos del retiro e incluye salud, vivienda e inflación.'}
-];
-const options=[{label:'Sí, totalmente',value:'yes',score:1},{label:'En parte',value:'partial',score:.5},{label:'No',value:'no',score:0},{label:'No aplica a mi situación',value:'na',score:null},{label:'No lo sé',value:'unknown',score:null}];
-const areaIntroductions=[
-  'Empezaremos por cómo organizas tu dinero, construyes un fondo de emergencia y haces crecer tus ahorros.',
-  'Aquí veremos cómo imaginas tu retiro, cómo inviertes para alcanzarlo y qué decisiones pueden darte más tranquilidad.',
-  'En esta sección exploraremos tus hábitos fiscales, tus documentos y las oportunidades para planificar mejor tus impuestos.',
-  'Ahora revisaremos cómo proteges tus ingresos, tu salud, tus bienes y a las personas importantes para ti.',
-  'Esta parte se centra en testamentos, beneficiarios y decisiones que ayudan a cuidar tu patrimonio en el futuro.',
-  'Cerraremos mirando tus ingresos, gastos y estrategias para construir un retiro más predecible.'
-];
-const courseRecommendations=[
-  {id:'money',name:'¿Por qué no nos alcanza el dinero?',url:'https://hispanic-wealth.teachable.com/l/pdp/por-que-no-nos-alcanza-el-dinero',thumbnail:'por-que-no-nos-alcanza-el-dinero.png',questionRefs:['0-0-0','5-0-1'],areaIndices:[0,5],reason:'Te puede ayudar a ordenar gastos, presupuesto y decisiones cotidianas con el dinero.'},
-  {id:'emergency',name:'Fondo de emergencias',url:'https://hispanic-wealth.teachable.com/p/fondo-de-emergencias2',thumbnail:'fondo-de-emergencias.png',questionRefs:['0-0-1'],areaIndices:[0],reason:'Puede darte una guía práctica para preparar reservas frente a imprevistos.'},
-  {id:'fraud',name:'Prevención de fraudes y robo de identidad',url:'https://hispanic-wealth.teachable.com/p/prevencion-de-fraudes-y-robo-de-identidad1',thumbnail:'prevencion-de-fraudes-y-robo-de-identidad.png',questionRefs:[],areaIndices:[],reason:'Una opción para profundizar en la protección de tu información y tu seguridad financiera.'}
-];
-const feedbackMessages={
-  high:['¡Muy bien! Cerraste esta sección con una base sólida. Ahora veamos cómo se conecta con el siguiente tema.','Tu desempeño muestra dominio en varias ideas importantes de esta área. El siguiente paso puede ayudarte a ampliar esa perspectiva.'],
-  good:['Vas avanzando: reconoces varios conceptos importantes y hay algunos matices que vale la pena seguir explorando.','Buen trabajo en esta sección. Ya tienes una base útil; ahora pondremos a prueba nuevas decisiones financieras.'],
-  developing:['Esta sección abrió una oportunidad concreta para aprender. Algunas ideas simples pueden hacer una diferencia en tus decisiones.','Ya identificaste parte del terreno. Continuemos para descubrir qué otros conceptos pueden fortalecer tu mapa financiero.'],
-  foundation:['Gracias por recorrer esta sección. Aquí hay conceptos fundamentales que pueden darte más claridad y confianza paso a paso.','Cada respuesta aporta información útil sobre tu punto de partida. La siguiente sección nos ayudará a completar el panorama.']
+const questionnaire = getQuestionnaireDefinition();
+const questions = questionnaire.questions;
+const responseOptions = Object.entries(questionnaire.responseScale).map(([value, label]) => ({
+  value: Number(value),
+  label,
+}));
+
+const progressStorageKey = `moneyAttitudeProgress:${questionnaire.version}`;
+const lastAssessmentStorageKey = 'moneyAttitudeLastAssessment';
+const views = ['welcomeView', 'quizView', 'resultsView'];
+const standardLevelLabels = {
+  low: 'Bajo',
+  medium: 'Medio',
+  high: 'Alto',
 };
-const syncConfig={endpoint:'https://script.google.com/macros/s/AKfycbxDz0gnzyPRtLM1MeiHJLzcYJ-fENE3Ikm4kR8cwOzAdf4QA0T6RYRn3Dgm67puDUSD/exec'};
-let state={area:0,level:0,index:0,answers:{},learn:[],wrong:0,user:null,attemptId:null}; const levels=['inicial','intermedio','avanzado'];
-const $=id=>document.getElementById(id); const views=['welcomeView','quizView','resultsView'];
-function createAttemptId(){return crypto.randomUUID?crypto.randomUUID():`attempt-${Date.now()}-${Math.random().toString(36).slice(2)}`}
-function participantData(){const totalQuestions=areas.reduce((total,area)=>total+Object.values(area.questions).flat().length,0);return {attemptId:state.attemptId,user:state.user,area:state.area,level:state.level,index:state.index,totalQuestions,answers:state.answers,learn:state.learn.map(item=>({key:item,topic:areas[Number(item.split('-')[0])]?.name||''}))}}
-function sync(event,data={}){if(!syncConfig.endpoint)return;fetch(syncConfig.endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({event,...participantData(),...data})}).catch(()=>{})}
-function show(id){views.forEach(v=>$(v).classList.toggle('active',v===id));window.scrollTo(0,0)}
-function key(){return `${state.area}-${state.level}-${state.index}`}
-function question(){return areas[state.area].questions[levels[state.level]][state.index]}
-function save(){localStorage.setItem('claraProgress',JSON.stringify(state))}
-function render(){const area=areas[state.area], qs=area.questions[levels[state.level]], total=areas.reduce((n,a)=>n+Object.values(a.questions).flat().length,0),done=Object.keys(state.answers).length;
-  $('areaName').textContent=area.name;$('progressLabel').textContent=`${state.area+1} de ${areas.length} áreas`;$('progressBar').style.width=`${Math.max(3,done/total*100)}%`;
-  $('levelPill').textContent=`NIVEL ${levels[state.level].toUpperCase()}`;$('questionCount').textContent=`Pregunta ${state.index+1} de ${qs.length}`;$('questionText').textContent=question();
-  $('answers').innerHTML=options.map((o,i)=>`<button class="answer ${state.answers[key()]?.value===o.value?'selected':''}" data-value="${o.value}"><span class="answer-key">${String.fromCharCode(65+i)}</span>${o.label}</button>`).join('');
-  $('learnMore').checked=state.learn.includes(key());$('nextButton').disabled=!state.answers[key()];$('backButton').disabled=done===0;
-  $('answers').querySelectorAll('.answer').forEach(b=>b.onclick=()=>select(b.dataset.value));updateCoach();
+const contextStateLabels = {
+  base: 'Lectura base',
+  amplified: 'Patrón amplificado',
+  buffered: 'Patrón amortiguado',
+  mixed: 'Lectura mixta',
+  contextDependent: 'Dependiente del contexto',
+  tension: 'Patrón en tensión',
+};
+const insightPolarityLabels = {
+  context: 'Contexto relevante',
+  risk: 'Patrón para observar',
+  tension: 'Tensión relevante',
+  mixed: 'Lectura mixta',
+  protective: 'Recurso protector',
+};
+const $ = id => document.getElementById(id);
+
+let state = createInitialState();
+let lastReport = null;
+
+function createInitialState() {
+  return {
+    instrumentVersion: questionnaire.version,
+    index: 0,
+    answers: {},
+    autonomyApplicable: null,
+    assessmentId: null,
+    startedAt: null,
+  };
 }
-function select(value){const o=options.find(x=>x.value===value);state.answers[key()]={value,score:o.score,area:state.area,level:state.level,q:question()};render();save();sync('progress')}
-function updateCoach(){const answered=Object.values(state.answers).filter(a=>a.area===state.area),strong=answered.filter(a=>a.score===1).length;
-  if(strong>=3){$('coachKicker').textContent='¡ESO ES!';$('coachTitle').innerHTML='Tu base se ve<br>muy sólida.';$('coachText').textContent='Vamos un poco más profundo. Estás demostrando criterio financiero.'}
-  else if(answered.some(a=>a.score===0)){$('coachKicker').textContent='UN PASO A LA VEZ';$('coachTitle').innerHTML='Detectarlo ya es<br>un avance.';$('coachText').textContent='Aquí hay una oportunidad para aprender. Seguimos sin juicios y a tu ritmo.'}
-  else{$('coachKicker').textContent='TU COMPAÑERA DE VIAJE';$('coachTitle').innerHTML='Empecemos<br>por lo esencial.';$('coachText').textContent='No hay respuestas malas. Lo importante es saber dónde estás hoy.'}}
-function getSectionScores(){return areas.map((area,index)=>{const values=Object.values(state.answers).filter(answer=>answer.area===index&&answer.score!==null).map(answer=>answer.score);return {area,index,answered:values.length,score:values.length?Math.round(values.reduce((sum,value)=>sum+value,0)/values.length*100):0}})}
-function getSectionFeedback(areaIndex){const result=getSectionScores()[areaIndex],band=result.score>=80?'high':result.score>=60?'good':result.score>=40?'developing':'foundation';const messages=feedbackMessages[band];return {score:result.score,level:band==='high'?'Base sólida':band==='good'?'Buen nivel':band==='developing'?'En desarrollo':'Bases por fortalecer',message:messages[areaIndex%messages.length]}}
-function getFinancialDiagnosis(sectionScores){const values=Object.values(state.answers).filter(answer=>answer.score!==null).map(answer=>answer.score),overall=Math.round(values.reduce((sum,value)=>sum+value,0)/Math.max(1,values.length)*100);const level=overall>=80?'Muy buen dominio financiero':overall>=60?'Buena base financiera':overall>=40?'Conocimientos financieros en desarrollo':'Una oportunidad para fortalecer tus bases financieras';const message=overall>=80?'Tu desempeño refleja una base consistente en varias áreas. Puedes seguir profundizando con objetivos concretos.':overall>=60?'Tienes una base funcional para tomar decisiones y algunos temas pueden darte todavía más seguridad.':overall>=40?'Tu mapa muestra conocimientos parciales y oportunidades claras para convertir ideas en hábitos.':'Este punto de partida puede crecer mucho con algunos conceptos fundamentales y pasos prácticos.';const ordered=[...sectionScores].filter(section=>section.answered>0).sort((a,b)=>b.score-a.score),focus=overall>=80?[]:ordered.slice(-2).reverse();return {overall,level,message,strengths:ordered.slice(0,3),focus}}
-function getCourseOpportunity(course,sectionScores){const direct=course.questionRefs.map(reference=>state.answers[reference]).filter(answer=>answer&&answer.score!==null).map(answer=>answer.score);if(direct.length)return 1-direct.reduce((sum,value)=>sum+value,0)/direct.length;const related=course.areaIndices.map(index=>sectionScores[index]).filter(section=>section&&section.answered>0);return related.length?1-related.reduce((sum,section)=>sum+section.score,0)/related.length/100:null}
-function getRecommendedCourses(sectionScores,diagnosis){const scored=courseRecommendations.map(course=>({...course,opportunity:getCourseOpportunity(course,sectionScores)})).filter(course=>course.opportunity!==null).sort((a,b)=>b.opportunity-a.opportunity);const meaningful=scored.filter(course=>course.opportunity>=.2).slice(0,2);return meaningful.length?meaningful:(diagnosis.overall>=80?courseRecommendations.map(course=>({...course,opportunity:null})):scored.slice(0,1))}
-function renderInsightList(id,items,emptyText){$(id).innerHTML=items.length?items.map(item=>`<div class="insight-row"><strong>${item.area.name}</strong><span>${item.score}%</span></div>`).join(''):`<p class="empty-insight">${emptyText}</p>`}
-function renderCourseCards(courses,diagnosis){$('recommendationIntro').textContent=diagnosis.overall>=80?'Tu desempeño es sólido. Estos cursos pueden ayudarte a profundizar, no porque te falte una base, sino para seguir creciendo.':'Elegimos estas opciones a partir de las áreas donde tienes más espacio para ganar claridad y confianza.';$('recommendations').innerHTML=courses.map((course,index)=>`<article class="course-card"><a class="course-thumbnail" href="${course.url}" target="_blank" rel="noopener" aria-label="Conocer el curso ${course.name}">${course.thumbnail?`<img src="${course.thumbnail}" alt="Thumbnail del curso ${course.name}">`:'<img src="hpw.png" alt="Hispanic Wealth">'}</a><div class="course-copy"><span class="course-label">${index?'TAMBIÉN PODRÍA AYUDARTE':'TU PRÓXIMO PASO'}</span><h3>${course.name}</h3><p>${course.reason}</p><a class="course-link" href="${course.url}" target="_blank" rel="noopener">Conocer el curso <span>↗</span></a></div></article>`).join('')}
-function unlockNavigation(){$('nextButton').disabled=!state.answers[key()];$('backButton').disabled=Object.keys(state.answers).length===0}
-function fadeInQuestion(){const wrap=$('questionWrap');wrap.classList.remove('question-fade-out');void wrap.offsetWidth;wrap.classList.add('question-fade-in');setTimeout(()=>wrap.classList.remove('question-fade-in'),1000);unlockNavigation()}
-function showSectionBreak(previousArea){const completedArea=areas[previousArea],nextArea=areas[state.area],feedback=getSectionFeedback(previousArea),continueButton=$('continueSection'),arrow=document.createElement('span');$('sectionBreakTitle').textContent=completedArea.name;$('sectionBreakText').textContent=areaIntroductions[state.area];$('sectionBreakScore').textContent=`${feedback.score}% · ${feedback.level}`;$('sectionBreakFeedback').textContent=feedback.message;$('sectionBreakProgress').textContent=`Área ${previousArea+1} de ${areas.length} completada`;arrow.textContent='→';continueButton.replaceChildren(`Continúa con la sección: ${nextArea.name} `,arrow);$('sectionBreak').hidden=false;continueButton.focus()}
-function continueSection(){$('sectionBreak').hidden=true;$('questionWrap').classList.remove('section-paused');fadeInQuestion()}
-function navigate(areaChanged,previousArea){const wrap=$('questionWrap');$('nextButton').disabled=true;$('backButton').disabled=true;wrap.classList.remove('question-fade-in');wrap.classList.add('question-fade-out');setTimeout(()=>{render();if(areaChanged){wrap.classList.add('section-paused');showSectionBreak(previousArea)}else fadeInQuestion()},1000)}
-function next(){const a=state.answers[key()];if(!a)return;const previousArea=state.area;if(a.value==='no'||a.value==='unknown')state.wrong++;else if(a.score===1)state.wrong=0;
-  const qs=areas[state.area].questions[levels[state.level]];if(state.index<qs.length-1 && state.wrong<3)state.index++;
-  else if(state.level<2 && state.wrong<3){state.level++;state.index=0;state.wrong=0}
-  else if(state.area<areas.length-1){state.area++;state.level=0;state.index=0;state.wrong=0}
-  else return finish();save();sync('progress');navigate(state.area!==previousArea,previousArea)}
-function back(){const keys=Object.keys(state.answers);if(!keys.length)return;const previousArea=state.area;const last=keys[keys.length-1].split('-').map(Number);delete state.answers[keys[keys.length-1]];[state.area,state.level,state.index]=last;save();navigate(state.area!==previousArea,previousArea)}
-function finish(){save();const sectionScores=getSectionScores(),diagnosis=getFinancialDiagnosis(sectionScores),courses=getRecommendedCourses(sectionScores,diagnosis);sync('complete',{diagnosis,sectionScores});$('finalScore').textContent=diagnosis.overall;$('finalLevel').textContent=diagnosis.level;$('finalMessage').textContent=diagnosis.message;$('scoreRing').style.setProperty('--score',`${diagnosis.overall*3.6}deg`);$('areaResults').innerHTML=sectionScores.map(section=>`<div class="area-row"><div class="area-meta"><span>${section.area.name}</span><strong>${section.score}%</strong></div><div class="area-line"><i style="width:${section.score}%"></i></div></div>`).join('');renderInsightList('strengths',diagnosis.strengths,'Cada área aporta información útil a tu mapa.');renderInsightList('focusAreas',diagnosis.focus,'Tu desempeño general es sólido; puedes elegir un tema para profundizar.');renderCourseCards(courses,diagnosis);show('resultsView');$('saveExit').hidden=true;localStorage.removeItem('claraProgress')}
-function start(fresh=true){if(fresh){state={area:0,level:0,index:0,answers:{},learn:[],wrong:0,user:{name:$('participantName').value.trim(),email:$('participantEmail').value.trim(),consent:true},attemptId:createAttemptId()};save();sync('start')}show('quizView');$('saveExit').hidden=false;render()}
-function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2500)}
-$('participantForm').onsubmit=e=>{e.preventDefault();start()};$('resumeButton').onclick=()=>start(false);$('nextButton').onclick=next;$('backButton').onclick=back;$('saveExit').onclick=()=>{save();sync('progress');show('welcomeView');$('saveExit').hidden=true;toast('Progreso guardado en este dispositivo')};
-$('continueSection').onclick=continueSection;
-$('learnMore').onchange=e=>{state.learn=e.target.checked?[...new Set([...state.learn,key()])]:state.learn.filter(x=>x!==key());save();sync('progress')};$('restartButton').onclick=()=>{$('participantForm').reset();show('welcomeView');$('saveExit').hidden=true};
-$('shareButton').onclick=async()=>{const text=`Mi diagnóstico financiero en Clara: ${$('finalScore').textContent}/100 — nivel ${$('finalLevel').textContent}.`;if(navigator.share)await navigator.share({title:'Mi diagnóstico financiero',text});else{await navigator.clipboard.writeText(text);toast('Resultado copiado al portapapeles')}};
-$('downloadButton').onclick=()=>{window.print()};if(localStorage.getItem('claraProgress')){$('resumeButton').hidden=false;try{state=JSON.parse(localStorage.getItem('claraProgress'));if(state.user){$('participantName').value=state.user.name||'';$('participantEmail').value=state.user.email||'';$('participantConsent').checked=Boolean(state.user.consent)}}catch{localStorage.removeItem('claraProgress')}}
+
+function createAssessmentId() {
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : `assessment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function currentQuestion() {
+  return questions[state.index];
+}
+
+function answeredCount() {
+  return Object.values(state.answers).filter(Number.isInteger).length;
+}
+
+function totalApplicableQuestions() {
+  return state.autonomyApplicable === false ? 42 : questions.length;
+}
+
+function show(id) {
+  views.forEach(view => $(view).classList.toggle('active', view === id));
+  window.scrollTo(0, 0);
+}
+
+function saveProgress() {
+  localStorage.setItem(progressStorageKey, JSON.stringify(state));
+  $('resumeButton').hidden = false;
+}
+
+function clearProgress() {
+  localStorage.removeItem(progressStorageKey);
+  $('resumeButton').hidden = true;
+}
+
+function render() {
+  const question = currentQuestion();
+  const selectedValue = state.answers[question.id];
+  const answered = answeredCount();
+  const total = totalApplicableQuestions();
+  const percentage = answered / total * 100;
+
+  $('progressLabel').textContent = `${answered} de ${total} respondidas`;
+  $('progressBar').style.width = `${Math.max(answered ? 3 : 0, percentage)}%`;
+  const progressTrack = $('progressBar').parentElement;
+  progressTrack.setAttribute('aria-valuemax', String(total));
+  progressTrack.setAttribute('aria-valuenow', String(answered));
+  $('questionCount').textContent = `Pregunta ${state.index + 1} de ${total}`;
+  $('questionText').textContent = question.text;
+  $('answers').innerHTML = responseOptions.map(option => `
+    <button class="answer ${selectedValue === option.value ? 'selected' : ''}" type="button" data-value="${option.value}" aria-pressed="${selectedValue === option.value}">
+      <span class="answer-key">${option.value}</span>
+      <span>${escapeHtml(option.label)}</span>
+    </button>
+  `).join('');
+
+  $('answers').querySelectorAll('.answer').forEach(button => {
+    button.onclick = () => selectAnswer(Number(button.dataset.value));
+  });
+  $('nextButton').disabled = !Number.isInteger(selectedValue);
+  $('nextButton').innerHTML = state.index === questions.length - 1
+    ? 'Ver mi perfil &nbsp;→'
+    : 'Siguiente &nbsp;→';
+  $('backButton').disabled = state.index === 0;
+  updateCoach();
+}
+
+function selectAnswer(value) {
+  state.answers[currentQuestion().id] = value;
+  saveProgress();
+  render();
+}
+
+function updateCoach() {
+  const position = (state.index + 1) / questions.length;
+  if (position < .34) {
+    $('coachKicker').textContent = 'RESPONDE CON HONESTIDAD';
+    $('coachTitle').innerHTML = 'No hay respuestas<br>correctas o incorrectas.';
+    $('coachText').textContent = 'Elige la opción que mejor describa cómo piensas, sientes o actúas hoy.';
+  } else if (position < .7) {
+    $('coachKicker').textContent = 'SIGUE A TU RITMO';
+    $('coachTitle').innerHTML = 'Cada respuesta<br>completa tu perfil.';
+    $('coachText').textContent = 'Puedes volver a una afirmación anterior si deseas cambiar tu respuesta.';
+  } else {
+    $('coachKicker').textContent = 'ÚLTIMO TRAMO';
+    $('coachTitle').innerHTML = 'Ya casi terminas<br>el recorrido.';
+    $('coachText').textContent = 'Lee cada afirmación con calma y responde según tu experiencia.';
+  }
+}
+
+function showAutonomyGate() {
+  $('questionWrap').classList.add('section-paused');
+  $('autonomyGate').hidden = false;
+  $('autonomyAppliesButton').focus();
+}
+
+function hideAutonomyGate() {
+  $('autonomyGate').hidden = true;
+  $('questionWrap').classList.remove('section-paused');
+}
+
+function chooseAutonomyApplicability(isApplicable) {
+  state.autonomyApplicable = isApplicable;
+  hideAutonomyGate();
+
+  if (isApplicable) {
+    saveProgress();
+    navigateTo(42);
+    return;
+  }
+
+  for (let id = 43; id <= 49; id += 1) state.answers[id] = null;
+  saveProgress();
+  finish();
+}
+
+function fadeInQuestion() {
+  const wrap = $('questionWrap');
+  wrap.classList.remove('question-fade-out');
+  void wrap.offsetWidth;
+  wrap.classList.add('question-fade-in');
+  setTimeout(() => wrap.classList.remove('question-fade-in'), 350);
+  $('questionText').focus({preventScroll: true});
+}
+
+function navigateTo(nextIndex) {
+  const wrap = $('questionWrap');
+  $('nextButton').disabled = true;
+  $('backButton').disabled = true;
+  wrap.classList.remove('question-fade-in');
+  wrap.classList.add('question-fade-out');
+  setTimeout(() => {
+    state.index = nextIndex;
+    saveProgress();
+    render();
+    fadeInQuestion();
+  }, 250);
+}
+
+function next() {
+  if (!Number.isInteger(state.answers[currentQuestion().id])) return;
+
+  if (state.index === 41 && state.autonomyApplicable === null) {
+    showAutonomyGate();
+    return;
+  }
+
+  if (state.index === 41 && state.autonomyApplicable === false) {
+    finish();
+    return;
+  }
+
+  if (state.index === questions.length - 1) {
+    finish();
+    return;
+  }
+
+  navigateTo(state.index + 1);
+}
+
+function back() {
+  if (state.index === 0) return;
+  navigateTo(state.index - 1);
+}
+
+function metricMarkup(label, metric) {
+  return `
+    <div class="profile-metric">
+      <div class="profile-metric-head">
+        <span>${escapeHtml(label)}</span>
+        <strong>${metric.display100}/100 · ${standardLevelLabels[metric.level] ?? metric.level}</strong>
+      </div>
+      <div class="area-line" role="meter" aria-label="${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${metric.display100}">
+        <i style="width:${metric.display100}%"></i>
+      </div>
+    </div>
+  `;
+}
+
+function dimensionContextMarkup(dimension, dimensionLabels) {
+  const context = dimension.context;
+  if (!context || context.state === 'base') return '';
+
+  const relatedKeys = [
+    ...context.amplifiedBy,
+    ...context.bufferedBy,
+    ...context.contextualizedBy,
+    ...context.tensionsWith,
+    ...context.reinforcedBy,
+  ];
+  const relatedLabels = [...new Set(relatedKeys)]
+    .map(key => dimensionLabels[key] ?? key)
+    .join(', ');
+  const contextMessages = {
+    amplified: 'Este patrón puede ganar fuerza al interactuar con otros elementos del perfil.',
+    buffered: 'Otros recursos del perfil pueden amortiguar este patrón.',
+    mixed: 'Aquí conviven factores que pueden amplificar y amortiguar este patrón.',
+    contextDependent: 'Conviene interpretar este resultado junto con las circunstancias y los demás patrones del perfil.',
+    tension: 'Este patrón aparece en tensión con otros elementos del perfil.',
+  };
+  const relatedText = relatedLabels ? ` Dimensiones relacionadas: ${relatedLabels}.` : '';
+
+  return `
+    <div class="dimension-context">
+      <span class="context-state state-${escapeHtml(context.state)}">${escapeHtml(contextStateLabels[context.state] ?? context.state)}</span>
+      <p>${escapeHtml((contextMessages[context.state] ?? 'Este resultado requiere una lectura contextual.') + relatedText)}</p>
+    </div>
+  `;
+}
+
+function standardDimensionMarkup(dimension, dimensionLabels) {
+  return `
+    <article class="dimension-result-card">
+      <div class="dimension-result-head">
+        <div>
+          <span class="result-label">${escapeHtml(dimension.label)}</span>
+          <h3>${escapeHtml(dimension.pattern)}</h3>
+        </div>
+        <span class="profile-code">${escapeHtml(dimension.baseCode)}</span>
+      </div>
+      <p>${escapeHtml(dimension.summary)}</p>
+      ${dimensionContextMarkup(dimension, dimensionLabels)}
+      <div class="profile-metrics">
+        ${metricMarkup('Intensidad', dimension.intensity)}
+        ${metricMarkup('Regulación / adaptación', dimension.regulation)}
+      </div>
+    </article>
+  `;
+}
+
+function renderAutonomy(dimension, dimensionLabels) {
+  const section = $('autonomyContextSection');
+  section.hidden = false;
+
+  if (dimension.applicable === false) {
+    $('autonomyContextResult').innerHTML = `
+      <div class="dimension-result-head"><h3>${escapeHtml(dimension.pattern)}</h3><span class="profile-code">NA</span></div>
+      <p>${escapeHtml(dimension.summary)}</p>
+    `;
+    return;
+  }
+
+  $('autonomyContextResult').innerHTML = `
+    <div class="dimension-result-head">
+      <div><h3>${escapeHtml(dimension.pattern)}</h3><p>${escapeHtml(dimension.summary)}</p></div>
+      <span class="profile-code">${escapeHtml(dimension.baseCode)}</span>
+    </div>
+    ${dimensionContextMarkup(dimension, dimensionLabels)}
+    <div class="profile-metrics">
+      ${metricMarkup('Intensidad de las señales', dimension.controlIntensity)}
+      <div class="context-stat"><span>Amplitud</span><strong>${dimension.breadth.countAtOrAbove4} de ${dimension.breadth.totalItems} señales</strong></div>
+      <div class="context-stat"><span>Autonomía actual</span><strong>${escapeHtml(dimension.currentAutonomy.label)}</strong></div>
+    </div>
+  `;
+}
+
+function localizeExecutiveSummary(summary, dimensionLabels) {
+  return Object.entries(dimensionLabels).reduce((localized, [key, label]) => (
+    localized.replace(new RegExp(`\\b${key}\\b`, 'g'), label.toLowerCase())
+  ), summary);
+}
+
+function insightMarkup(insight, dimensionLabels) {
+  const involvedDimensions = (insight.centralDimensions ?? [])
+    .map(key => dimensionLabels[key] ?? key)
+    .join(' · ');
+  const polarity = insight.polarity ?? 'mixed';
+
+  return `
+    <article class="insight-result polarity-${escapeHtml(polarity)}">
+      <div class="insight-result-head">
+        <span class="insight-polarity">${escapeHtml(insightPolarityLabels[polarity] ?? 'Hallazgo integrado')}</span>
+        ${involvedDimensions ? `<span class="insight-dimensions">${escapeHtml(involvedDimensions)}</span>` : ''}
+      </div>
+      <h3>${escapeHtml(insight.label)}</h3>
+      <p>${escapeHtml(insight.summary)}</p>
+      ${insight.longContext ? `<p class="insight-context">${escapeHtml(insight.longContext)}</p>` : ''}
+    </article>
+  `;
+}
+
+function renderReport(report) {
+  const standardDimensions = report.dimensions.filter(dimension => dimension.dimension !== 'autonomy');
+  const autonomy = report.dimensions.find(dimension => dimension.dimension === 'autonomy');
+  const dimensionLabels = Object.fromEntries(report.dimensions.map(dimension => [dimension.dimension, dimension.label]));
+
+  $('finalLevel').textContent = 'Siete dimensiones, un perfil integrado';
+  $('finalMessage').textContent = localizeExecutiveSummary(report.executiveSummary, dimensionLabels);
+  $('primaryProfileCodes').innerHTML = report.dimensions.map(dimension => `
+    <span class="primary-code-item"><small>${escapeHtml(dimension.label)}</small><strong>${escapeHtml(dimension.baseCode)}</strong></span>
+  `).join('');
+  $('dimensionResults').innerHTML = standardDimensions
+    .map(dimension => standardDimensionMarkup(dimension, dimensionLabels))
+    .join('');
+  renderAutonomy(autonomy, dimensionLabels);
+
+  $('primaryInsightsSection').hidden = report.primaryInsights.length === 0;
+  $('primaryInsightsResults').innerHTML = report.primaryInsights
+    .map(insight => insightMarkup(insight, dimensionLabels))
+    .join('');
+  $('secondaryInsightsSection').hidden = report.secondaryInsights.length === 0;
+  $('secondaryInsightsResults').innerHTML = report.secondaryInsights
+    .map(insight => insightMarkup(insight, dimensionLabels))
+    .join('');
+  $('reportNotices').innerHTML = report.notices.map(notice => `<p>${escapeHtml(notice)}</p>`).join('');
+}
+
+function finish() {
+  try {
+    const autonomyApplicable = state.autonomyApplicable !== false;
+    const report = generateMoneyProfileReport(state.answers, {
+      autonomyApplicable,
+      maxPrimary: 3,
+      maxSecondary: 2,
+    });
+    const storedAssessment = buildStoredAssessment({
+      assessmentId: state.assessmentId,
+      answers: state.answers,
+      autonomyApplicable,
+      metadata: {
+        locale: 'es',
+        source: 'web-prototype',
+        startedAt: state.startedAt,
+        completedAt: new Date().toISOString(),
+      },
+    });
+    const auditableRecord = {
+      ...storedAssessment,
+      analysisVersion: report.analysisVersion,
+      reportVersion: report.reportVersion,
+      report,
+    };
+
+    localStorage.setItem(lastAssessmentStorageKey, JSON.stringify(auditableRecord));
+    lastReport = report;
+    renderReport(report);
+    clearProgress();
+    show('resultsView');
+    $('saveExit').hidden = true;
+    $('resultsTitle').focus({preventScroll: true});
+  } catch (error) {
+    console.error(error);
+    toast('No fue posible calcular el perfil. Revisa que todas las afirmaciones estén respondidas.');
+  }
+}
+
+function start(fresh = true) {
+  if (fresh) {
+    state = createInitialState();
+    state.assessmentId = createAssessmentId();
+    state.startedAt = new Date().toISOString();
+    saveProgress();
+  }
+
+  hideAutonomyGate();
+  show('quizView');
+  $('saveExit').hidden = false;
+  render();
+  $('questionText').focus({preventScroll: true});
+}
+
+function resetResultPanels() {
+  $('primaryInsightsSection').hidden = true;
+  $('secondaryInsightsSection').hidden = true;
+  $('autonomyContextSection').hidden = true;
+  $('dimensionResults').replaceChildren();
+  $('primaryInsightsResults').replaceChildren();
+  $('secondaryInsightsResults').replaceChildren();
+  $('autonomyContextResult').replaceChildren();
+  $('primaryProfileCodes').replaceChildren();
+}
+
+function restart() {
+  clearProgress();
+  state = createInitialState();
+  lastReport = null;
+  resetResultPanels();
+  hideAutonomyGate();
+  show('welcomeView');
+  $('saveExit').hidden = true;
+  $('startButton').focus();
+}
+
+function toast(text) {
+  $('toast').textContent = text;
+  $('toast').classList.add('show');
+  setTimeout(() => $('toast').classList.remove('show'), 2500);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character]);
+}
+
+function loadSavedProgress() {
+  const saved = localStorage.getItem(progressStorageKey);
+  if (!saved) return;
+
+  try {
+    const parsed = JSON.parse(saved);
+    const isValid = parsed.instrumentVersion === questionnaire.version
+      && Number.isInteger(parsed.index)
+      && parsed.index >= 0
+      && parsed.index < questions.length
+      && parsed.answers
+      && typeof parsed.answers === 'object';
+
+    if (!isValid) throw new Error('Progreso incompatible');
+    state = parsed;
+    $('resumeButton').hidden = false;
+  } catch {
+    localStorage.removeItem(progressStorageKey);
+  }
+}
+
+$('startButton').onclick = () => start(true);
+$('resumeButton').onclick = () => start(false);
+$('nextButton').onclick = next;
+$('backButton').onclick = back;
+$('autonomyAppliesButton').onclick = () => chooseAutonomyApplicability(true);
+$('autonomyNotApplicableButton').onclick = () => chooseAutonomyApplicability(false);
+$('saveExit').onclick = () => {
+  saveProgress();
+  hideAutonomyGate();
+  show('welcomeView');
+  $('saveExit').hidden = true;
+  toast('Progreso guardado en este dispositivo');
+};
+$('restartButton').onclick = restart;
+$('downloadButton').onclick = () => window.print();
+$('shareButton').onclick = async () => {
+  if (!lastReport) return;
+  const text = reportToText(lastReport);
+  try {
+    if (navigator.share) {
+      await navigator.share({title: 'Mi actitud frente al dinero', text});
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast('Resultado copiado al portapapeles');
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') toast('No fue posible compartir el resultado');
+  }
+};
+
+loadSavedProgress();

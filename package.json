@@ -1,0 +1,18 @@
+{
+  "name": "money-profile-engine",
+  "version": "0.4.0-prototype",
+  "private": true,
+  "type": "module",
+  "description": "Motor determinístico para 49 preguntas, 7 dimensiones y arquitectura de 4 capas de interpretación financiera.",
+  "scripts": {
+    "test": "node tests/selftest.js && node tests/pair-signals-selftest.js && node tests/full-pipeline-selftest.js",
+    "test:core": "node tests/selftest.js",
+    "test:pairs": "node tests/pair-signals-selftest.js",
+    "test:pipeline": "node tests/full-pipeline-selftest.js",
+    "demo": "node examples/example.js",
+    "demo:full": "node examples/full-pipeline-example.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

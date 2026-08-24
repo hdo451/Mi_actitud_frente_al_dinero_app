@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f6f3ff">
-  <title>Clara — Tu mapa financiero</title>
+  <meta name="theme-color" content="#102d52">
+  <title>Mi actitud frente al dinero</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
@@ -17,23 +17,16 @@
     <button class="quiet-button" id="saveExit" hidden>Guardar y salir</button>
   </header>
   <main id="app">
-    <section class="welcome view active" id="welcomeView">
+    <section class="welcome view active" id="welcomeView" aria-labelledby="welcomeTitle">
       <div class="hero-copy">
-        <span class="eyebrow"><i></i> Diagnóstico financiero inteligente</span>
-        <h1>Descubre cuánto sabes.<br><em>Crece desde ahí.</em></h1>
-        <p>Una conversación adaptada a ti para conocer tus fortalezas financieras y descubrir, sin juicios, tu siguiente paso.</p>
-        <form class="participant-form" id="participantForm">
-          <label for="participantName">Nombre completo</label>
-          <input id="participantName" name="name" type="text" autocomplete="name" required>
-          <label for="participantEmail">Correo electrónico</label>
-          <input id="participantEmail" name="email" type="email" autocomplete="email" required>
-          <label class="consent-label"><input id="participantConsent" name="consent" type="checkbox" required><span></span> Acepto que Hispanic Wealth recopile y almacene mi nombre, correo electrónico, respuestas, progreso y resultados de esta actividad para enviarme mi diagnóstico y dar seguimiento a mi participación. Entiendo que puedo solicitar información sobre el uso de mis datos.</label>
-          <button class="primary" id="startButton" type="submit">Comenzar diagnóstico <span>→</span></button>
-        </form>
+        <span class="eyebrow"><i></i> Tu relación con el dinero</span>
+        <h1 id="welcomeTitle">Descubre cómo piensas,<br><em>sientes y actúas.</em></h1>
+        <p>Responde 49 afirmaciones para construir una lectura de los patrones que influyen en tus decisiones económicas. No hay respuestas correctas o incorrectas.</p>
         <div class="hero-actions">
+          <button class="primary" id="startButton" type="button">Comenzar recorrido <span>→</span></button>
           <button class="resume" id="resumeButton" hidden>Continuar mi progreso</button>
         </div>
-        <div class="trust-row"><span>◷ &nbsp;8–12 minutos</span><span>◆ &nbsp;100% privado</span><span>✦ &nbsp;Resultado personalizado</span></div>
+        <div class="trust-row"><span>◷ &nbsp;49 afirmaciones</span><span>◆ &nbsp;Progreso guardado</span><span>✦ &nbsp;Lectura orientativa</span></div>
       </div>
       <div class="hero-art" aria-hidden="true">
         <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
@@ -44,50 +37,92 @@
       </div>
     </section>
 
-    <section class="quiz view" id="quizView">
+    <section class="quiz view" id="quizView" aria-labelledby="questionText">
       <aside class="coach-panel">
-        <div class="coach-copy"><span class="coach-kicker" id="coachKicker">TU COMPAÑERA DE VIAJE</span><h2 id="coachTitle">Empecemos<br>por lo esencial.</h2><p id="coachText">No hay respuestas malas. Lo importante es saber dónde estás hoy.</p></div>
+        <div class="coach-copy"><span class="coach-kicker" id="coachKicker">RESPONDE CON HONESTIDAD</span><h2 id="coachTitle">No hay respuestas<br>correctas o incorrectas.</h2><p id="coachText">Elige la opción que mejor describa cómo piensas, sientes o actúas hoy.</p></div>
         <div class="coach-visual"><div class="face" id="coachFace"><i></i><i></i><b></b></div><div class="coach-shadow"></div><span class="float-symbol s1">$</span><span class="float-symbol s2">%</span><span class="float-symbol s3">+</span></div>
       </aside>
-      <div class="question-panel">
-        <div class="progress-head"><span id="areaName">Ahorro e inversión</span><span id="progressLabel">1 de 6 áreas</span></div>
-        <div class="progress-track"><i id="progressBar"></i></div>
-        <div class="section-break" id="sectionBreak" hidden aria-live="polite">
-          <img class="section-break-logo" src="hpw.png" alt="">
-          <span class="section-break-kicker">VAS AVANZANDO</span>
-          <strong id="sectionBreakTitle">Sección completada</strong>
-          <span class="section-break-score" id="sectionBreakScore"></span>
-          <p class="section-break-feedback" id="sectionBreakFeedback"></p>
-          <p id="sectionBreakText">Cada respuesta te acerca a una imagen más clara de tus finanzas.</p>
-          <span class="section-break-progress" id="sectionBreakProgress"></span>
-          <button class="continue-section" id="continueSection">Continúa con la siguiente sección <span>→</span></button>
-        </div>
+      <div class="question-panel" aria-live="polite">
+        <div class="progress-head"><span>Tu recorrido</span><span id="progressLabel">0 de 49 respondidas</span></div>
+        <div class="progress-track" role="progressbar" aria-label="Progreso del cuestionario" aria-valuemin="0" aria-valuemax="49" aria-valuenow="0"><i id="progressBar"></i></div>
+
+        <section class="section-break" id="autonomyGate" hidden aria-labelledby="autonomyGateTitle">
+          <span class="section-break-kicker">ANTES DE CONTINUAR</span>
+          <strong id="autonomyGateTitle">Las próximas afirmaciones se refieren a experiencias económicas en una relación de pareja.</strong>
+          <p>Para responderlas tendría que haber existido una relación con algún grado de interdependencia económica. No haber vivido ese contexto no equivale a estar en desacuerdo con las afirmaciones.</p>
+          <div class="result-actions context-actions" role="group" aria-label="Aplicabilidad de las próximas afirmaciones">
+            <button class="continue-section" id="autonomyAppliesButton" type="button">Sí, continuar <span>→</span></button>
+            <button class="secondary" id="autonomyNotApplicableButton" type="button">No aplica / no he tenido una relación en la que estas situaciones pudieran presentarse</button>
+          </div>
+        </section>
+
         <div class="question-wrap" id="questionWrap">
-          <div class="level-pill" id="levelPill">NIVEL INICIAL</div>
-          <p class="question-count" id="questionCount">Pregunta 1</p>
-          <h2 id="questionText"></h2>
-          <label class="learn-more"><input type="checkbox" id="learnMore"><span></span> Me gustaría aprender más sobre este tema</label>
-          <p class="question-hint">Elige la opción que mejor refleje tu situación actual.</p>
-          <div class="answers" id="answers"></div>
-          <div class="quiz-nav"><button class="back" id="backButton" disabled>← &nbsp;Anterior</button><button class="next" id="nextButton" disabled>Siguiente &nbsp;→</button></div>
+          <p class="question-count" id="questionCount">Pregunta 1 de 49</p>
+          <h2 id="questionText" tabindex="-1"></h2>
+          <p class="question-hint" id="questionHint">Indica en qué medida estás de acuerdo o en desacuerdo.</p>
+          <div class="answers" id="answers" role="group" aria-labelledby="questionText" aria-describedby="questionHint"></div>
+          <div class="quiz-nav"><button class="back" id="backButton" type="button" disabled>← &nbsp;Anterior</button><button class="next" id="nextButton" type="button" disabled>Siguiente &nbsp;→</button></div>
         </div>
       </div>
     </section>
 
-    <section class="results view" id="resultsView">
-      <div class="results-head"><span class="eyebrow"><i></i> Tu diagnóstico está listo</span><h1>Tu punto de partida,<br><em>con toda claridad.</em></h1><p>No es una nota: es un mapa para tomar mejores decisiones.</p></div>
-      <div class="result-grid">
-        <article class="score-card"><div class="score-ring" id="scoreRing"><div><strong id="finalScore">0</strong><small>/ 100</small></div></div><div><span class="result-label">TU NIVEL</span><h2 id="finalLevel">Conocimientos en desarrollo</h2><p id="finalMessage"></p></div></article>
-        <article class="areas-card"><div class="card-title"><div><span class="result-label">TU MAPA FINANCIERO</span><h2>Desempeño por área</h2></div><span>0—100</span></div><div id="areaResults"></div></article>
-        <article class="insight-card"><span class="result-label">LO QUE DESTACA</span><h2>Tus fortalezas</h2><div id="strengths"></div></article>
-        <article class="insight-card focus-card"><span class="result-label">TU PRÓXIMO ENFOQUE</span><h2>Áreas para reforzar</h2><div id="focusAreas"></div></article>
-        <article class="recommendations"><span class="result-label">APRENDE A TU RITMO</span><h2>Tu siguiente paso recomendado</h2><p class="recommendation-intro" id="recommendationIntro"></p><div id="recommendations"></div></article>
+    <section class="results view" id="resultsView" aria-labelledby="resultsTitle">
+      <div class="results-head">
+        <span class="eyebrow"><i></i> Tu perfil está listo</span>
+        <h1 id="resultsTitle" tabindex="-1">Tu relación con el dinero,<br><em>vista con más claridad.</em></h1>
+        <p>El resultado describe patrones; no asigna una nota general ni compara tus respuestas con las de otras personas.</p>
       </div>
-      <div class="result-actions"><button class="primary" id="downloadButton">Descargar resultado ↓</button><button class="secondary" id="shareButton">Compartir diagnóstico ↗</button><button class="text-button" id="restartButton">Repetir evaluación</button></div>
-      <p class="disclaimer">Este diagnóstico es educativo y no constituye asesoramiento financiero, fiscal, legal o contable.</p>
+      <div class="result-grid">
+        <article class="score-card profile-summary" id="profileSummary">
+          <div>
+            <span class="result-label">LECTURA PRINCIPAL</span>
+            <h2 id="finalLevel">Siete dimensiones, un perfil integrado</h2>
+            <p id="finalMessage">Aquí aparecerá una síntesis breve de los patrones identificados.</p>
+            <div class="primary-profile-codes" id="primaryProfileCodes"></div>
+          </div>
+        </article>
+
+        <article class="areas-card profile-dimensions">
+          <div class="card-title">
+            <div><span class="result-label">PERFILES PRIMARIOS</span><h2>Lectura por dimensión</h2></div>
+            <span>Intensidad · regulación</span>
+          </div>
+          <div id="dimensionResults" aria-live="polite"></div>
+        </article>
+
+        <article class="insight-card primary-insights-card" id="primaryInsightsSection" hidden>
+          <span class="result-label">LECTURA INTEGRADA</span>
+          <h2>Ideas principales</h2>
+          <p class="insights-intro">Los patrones que mejor ayudan a comprender cómo se organiza tu perfil en conjunto.</p>
+          <div id="primaryInsightsResults"></div>
+        </article>
+
+        <article class="insight-card secondary-insights-card" id="secondaryInsightsSection" hidden>
+          <span class="result-label">LECTURA COMPLEMENTARIA</span>
+          <h2>Factores complementarios</h2>
+          <p class="insights-intro">Otros elementos relevantes que aportan contexto sin reemplazar tus resultados base.</p>
+          <div id="secondaryInsightsResults"></div>
+        </article>
+
+        <article class="insight-card focus-card" id="autonomyContextSection" hidden>
+          <span class="result-label">CONTEXTO RELACIONAL</span>
+          <h2>Autonomía y poder económico</h2>
+          <div id="autonomyContextResult"></div>
+        </article>
+
+        <article class="recommendations result-note">
+          <span class="result-label">CÓMO LEER ESTE PERFIL</span>
+          <h2>Una descripción, no una etiqueta</h2>
+          <div id="reportNotices">
+            <p>Los valores de 0–100 son transformaciones visuales de las respuestas, no percentiles normativos. Las interpretaciones y correlaciones son hipótesis descriptivas de un instrumento en etapa de prototipo.</p>
+          </div>
+        </article>
+      </div>
+      <div class="result-actions"><button class="primary" id="downloadButton" type="button">Descargar reporte ↓</button><button class="secondary" id="shareButton" type="button">Compartir resultado ↗</button><button class="text-button" id="restartButton" type="button">Repetir evaluación</button></div>
+      <p class="disclaimer">Esta herramienta es educativa y de autorreflexión. No constituye diagnóstico psicológico ni asesoramiento financiero, fiscal, legal o contable.</p>
     </section>
   </main>
   <div class="toast" id="toast" role="status"></div>
-  <script src="app.js" defer></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
