@@ -68,3 +68,52 @@ export {
   quickReportToText,
   quickReportV2ToText,
 } from "./report.js";
+
+export {
+  DIMENSION_NARRATIVE_VERSION,
+  getDimensionNarrative,
+  validateDimensionNarrativeCoverage,
+} from "./dimension-narratives.js";
+
+export {
+  PATTERN_NARRATIVE_VERSION,
+  PATTERN_NARRATIVES,
+  getPatternNarrative,
+  validatePatternNarrativeCoverage,
+} from "./pattern-narratives.js";
+
+export {
+  INTERACTION_NARRATIVE_VERSION,
+  buildInteractionNarrative,
+  selectInteractionNarratives,
+} from "./interaction-narratives.js";
+
+export {
+  RECOMMENDATION_LIBRARY_VERSION,
+  buildRecommendations,
+} from "./recommendation-library.js";
+
+export {
+  REFLECTION_LIBRARY_VERSION,
+  buildReflectionQuestions,
+} from "./reflection-library.js";
+
+export {
+  PROFESSIONAL_REPORT_VERSION,
+  REPORT_MODES,
+  REPORT_SECTION_ORDER,
+  normalizeProfessionalReportOptions,
+  validateProfessionalReport,
+} from "./report-schema.js";
+
+export {
+  REPORT_COMPOSER_VERSION,
+  composeProfessionalReport,
+} from "./report-composer.js";
+
+export {
+  PROFESSIONAL_REPORT_RENDERER_VERSION,
+  generateProfessionalReport,
+  professionalReportToText,
+  professionalReportToHtml,
+} from "./professional-report.js";

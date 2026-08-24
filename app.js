@@ -1,8 +1,9 @@
 import {
   buildStoredAssessment,
-  generateMoneyProfileReport,
+  generateProfessionalReport,
   getQuestionnaireDefinition,
-  reportToText,
+  professionalReportToHtml,
+  professionalReportToText,
 } from './money-profile-engine.js';
 
 const questionnaire = getQuestionnaireDefinition();
@@ -228,38 +229,32 @@ function metricMarkup(label, metric) {
   `;
 }
 
-function dimensionContextMarkup(dimension, dimensionLabels) {
-  const context = dimension.context;
-  if (!context || context.state === 'base') return '';
-
-  const relatedKeys = [
-    ...context.amplifiedBy,
-    ...context.bufferedBy,
-    ...context.contextualizedBy,
-    ...context.tensionsWith,
-    ...context.reinforcedBy,
-  ];
-  const relatedLabels = [...new Set(relatedKeys)]
-    .map(key => dimensionLabels[key] ?? key)
-    .join(', ');
-  const contextMessages = {
-    amplified: 'Este patrón puede ganar fuerza al interactuar con otros elementos del perfil.',
-    buffered: 'Otros recursos del perfil pueden amortiguar este patrón.',
-    mixed: 'Aquí conviven factores que pueden amplificar y amortiguar este patrón.',
-    contextDependent: 'Conviene interpretar este resultado junto con las circunstancias y los demás patrones del perfil.',
-    tension: 'Este patrón aparece en tensión con otros elementos del perfil.',
-  };
-  const relatedText = relatedLabels ? ` Dimensiones relacionadas: ${relatedLabels}.` : '';
-
+function dimensionContextMarkup(dimension) {
+  if (!dimension.narrative?.context && !dimension.narrative?.specialNote) return '';
   return `
     <div class="dimension-context">
-      <span class="context-state state-${escapeHtml(context.state)}">${escapeHtml(contextStateLabels[context.state] ?? context.state)}</span>
-      <p>${escapeHtml((contextMessages[context.state] ?? 'Este resultado requiere una lectura contextual.') + relatedText)}</p>
+      <span class="context-state state-${escapeHtml(dimension.contextualState)}">${escapeHtml(contextStateLabels[dimension.contextualState] ?? dimension.contextualState)}</span>
+      ${dimension.narrative.specialNote ? `<p><strong>Nota:</strong> ${escapeHtml(dimension.narrative.specialNote)}</p>` : ''}
+      ${dimension.narrative.context ? `<p>${escapeHtml(dimension.narrative.context)}</p>` : ''}
     </div>
   `;
 }
 
-function standardDimensionMarkup(dimension, dimensionLabels) {
+function listMarkup(items) {
+  if (!items?.length) return '';
+  return `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
+function dimensionNarrativeMarkup(dimension) {
+  return `
+    <div class="dimension-narrative-grid">
+      <div><strong>Fortalezas o recursos</strong>${listMarkup(dimension.narrative.strengths)}</div>
+      <div><strong>Aspectos a observar</strong>${listMarkup(dimension.narrative.watchouts)}</div>
+    </div>
+  `;
+}
+
+function standardDimensionMarkup(dimension) {
   return `
     <article class="dimension-result-card">
       <div class="dimension-result-head">
@@ -267,65 +262,78 @@ function standardDimensionMarkup(dimension, dimensionLabels) {
           <span class="result-label">${escapeHtml(dimension.label)}</span>
           <h3>${escapeHtml(dimension.pattern)}</h3>
         </div>
-        <span class="profile-code">${escapeHtml(dimension.baseCode)}</span>
+        <span class="profile-code">${escapeHtml(dimension.code)}</span>
       </div>
-      <p>${escapeHtml(dimension.summary)}</p>
-      ${dimensionContextMarkup(dimension, dimensionLabels)}
+      <p>${escapeHtml(dimension.narrative.overview)}</p>
+      ${dimensionContextMarkup(dimension)}
       <div class="profile-metrics">
         ${metricMarkup('Intensidad', dimension.intensity)}
         ${metricMarkup('Regulación / adaptación', dimension.regulation)}
       </div>
+      ${dimensionNarrativeMarkup(dimension)}
     </article>
   `;
 }
 
-function renderAutonomy(dimension, dimensionLabels) {
+function renderAutonomy(dimension) {
   const section = $('autonomyContextSection');
   section.hidden = false;
 
   if (dimension.applicable === false) {
     $('autonomyContextResult').innerHTML = `
       <div class="dimension-result-head"><h3>${escapeHtml(dimension.pattern)}</h3><span class="profile-code">NA</span></div>
-      <p>${escapeHtml(dimension.summary)}</p>
+      <p>${escapeHtml(dimension.narrative.overview)}</p>
     `;
     return;
   }
 
   $('autonomyContextResult').innerHTML = `
     <div class="dimension-result-head">
-      <div><h3>${escapeHtml(dimension.pattern)}</h3><p>${escapeHtml(dimension.summary)}</p></div>
-      <span class="profile-code">${escapeHtml(dimension.baseCode)}</span>
+      <div><h3>${escapeHtml(dimension.pattern)}</h3><p>${escapeHtml(dimension.narrative.overview)}</p></div>
+      <span class="profile-code">${escapeHtml(dimension.code)}</span>
     </div>
-    ${dimensionContextMarkup(dimension, dimensionLabels)}
+    ${dimensionContextMarkup(dimension)}
     <div class="profile-metrics">
       ${metricMarkup('Intensidad de las señales', dimension.controlIntensity)}
       <div class="context-stat"><span>Amplitud</span><strong>${dimension.breadth.countAtOrAbove4} de ${dimension.breadth.totalItems} señales</strong></div>
       <div class="context-stat"><span>Autonomía actual</span><strong>${escapeHtml(dimension.currentAutonomy.label)}</strong></div>
     </div>
+    ${dimensionNarrativeMarkup(dimension)}
   `;
 }
 
-function localizeExecutiveSummary(summary, dimensionLabels) {
-  return Object.entries(dimensionLabels).reduce((localized, [key, label]) => (
-    localized.replace(new RegExp(`\\b${key}\\b`, 'g'), label.toLowerCase())
-  ), summary);
-}
-
-function insightMarkup(insight, dimensionLabels) {
-  const involvedDimensions = (insight.centralDimensions ?? [])
+function patternMarkup(pattern, dimensionLabels) {
+  const involvedDimensions = (pattern.dimensions ?? [])
     .map(key => dimensionLabels[key] ?? key)
     .join(' · ');
-  const polarity = insight.polarity ?? 'mixed';
+  const polarity = pattern.polarity ?? 'mixed';
 
   return `
     <article class="insight-result polarity-${escapeHtml(polarity)}">
       <div class="insight-result-head">
-        <span class="insight-polarity">${escapeHtml(insightPolarityLabels[polarity] ?? 'Hallazgo integrado')}</span>
+        <span class="insight-polarity">${escapeHtml(pattern.heading ?? insightPolarityLabels[polarity] ?? 'Hallazgo integrado')}</span>
         ${involvedDimensions ? `<span class="insight-dimensions">${escapeHtml(involvedDimensions)}</span>` : ''}
       </div>
-      <h3>${escapeHtml(insight.label)}</h3>
-      <p>${escapeHtml(insight.summary)}</p>
-      ${insight.longContext ? `<p class="insight-context">${escapeHtml(insight.longContext)}</p>` : ''}
+      <h3>${escapeHtml(pattern.title)}</h3>
+      <p>${escapeHtml(pattern.summary)}</p>
+      <p class="insight-context">${escapeHtml(pattern.interpretation)}</p>
+      ${pattern.overrideNotes?.length ? `<div class="override-notes">${listMarkup(pattern.overrideNotes)}</div>` : ''}
+    </article>
+  `;
+}
+
+function renderCollection(sectionId, resultsId, items, renderer) {
+  $(sectionId).hidden = items.length === 0;
+  $(resultsId).innerHTML = items.map(renderer).join('');
+}
+
+function interactionMarkup(interaction) {
+  return `
+    <article class="interaction-result">
+      <span>${interaction.dimensionLabels.map(escapeHtml).join(' · ')}</span>
+      <h3>${escapeHtml(interaction.title)}</h3>
+      <p>${escapeHtml(interaction.summary)}</p>
+      <p class="interaction-interpretation">${escapeHtml(interaction.interpretation)}</p>
     </article>
   `;
 }
@@ -335,34 +343,44 @@ function renderReport(report) {
   const autonomy = report.dimensions.find(dimension => dimension.dimension === 'autonomy');
   const dimensionLabels = Object.fromEntries(report.dimensions.map(dimension => [dimension.dimension, dimension.label]));
 
-  $('finalLevel').textContent = 'Siete dimensiones, un perfil integrado';
-  $('finalMessage').textContent = localizeExecutiveSummary(report.executiveSummary, dimensionLabels);
+  $('finalLevel').textContent = 'Reporte profesional determinístico';
+  $('finalMessage').textContent = report.executiveSummary;
+  $('reportMetadata').textContent = `Versión ${report.metadata.reportVersion} · ${report.metadata.usesGenerativeAI ? 'Con IA generativa' : 'Sin IA generativa'}`;
   $('primaryProfileCodes').innerHTML = report.dimensions.map(dimension => `
-    <span class="primary-code-item"><small>${escapeHtml(dimension.label)}</small><strong>${escapeHtml(dimension.baseCode)}</strong></span>
+    <span class="primary-code-item"><small>${escapeHtml(dimension.label)}</small><strong>${escapeHtml(dimension.code)}</strong></span>
   `).join('');
-  $('dimensionResults').innerHTML = standardDimensions
-    .map(dimension => standardDimensionMarkup(dimension, dimensionLabels))
-    .join('');
-  renderAutonomy(autonomy, dimensionLabels);
+  $('dimensionResults').innerHTML = standardDimensions.map(standardDimensionMarkup).join('');
+  renderAutonomy(autonomy);
 
-  $('primaryInsightsSection').hidden = report.primaryInsights.length === 0;
-  $('primaryInsightsResults').innerHTML = report.primaryInsights
-    .map(insight => insightMarkup(insight, dimensionLabels))
-    .join('');
-  $('secondaryInsightsSection').hidden = report.secondaryInsights.length === 0;
-  $('secondaryInsightsResults').innerHTML = report.secondaryInsights
-    .map(insight => insightMarkup(insight, dimensionLabels))
-    .join('');
+  renderCollection('primaryInsightsSection', 'primaryInsightsResults', report.primaryPatterns, pattern => patternMarkup(pattern, dimensionLabels));
+  renderCollection('secondaryInsightsSection', 'secondaryInsightsResults', report.secondaryPatterns, pattern => patternMarkup(pattern, dimensionLabels));
+  renderCollection('protectiveResourcesSection', 'protectiveResourcesResults', report.protectiveResources, pattern => patternMarkup(pattern, dimensionLabels));
+  renderCollection('tensionsSection', 'tensionsResults', report.tensionsAndContext, pattern => patternMarkup(pattern, dimensionLabels));
+  renderCollection('interactionsSection', 'interactionsResults', report.interactions, interactionMarkup);
+  renderCollection('recommendationsSection', 'recommendationsResults', report.recommendations, recommendation => `
+    <li><span>${recommendation.rank}</span><p>${escapeHtml(recommendation.text)}</p></li>
+  `);
+  renderCollection('reflectionSection', 'reflectionResults', report.reflectionQuestions, reflection => `
+    <li><span>${reflection.rank}</span><p>${escapeHtml(reflection.question)}</p></li>
+  `);
+  $('reportMethodology').innerHTML = `
+    <p>${escapeHtml(report.methodology.status)}</p>
+    <p>${escapeHtml(report.methodology.scoring)}</p>
+    <p>${escapeHtml(report.methodology.interactions)}</p>
+    <p>${escapeHtml(report.methodology.causality)}</p>
+    <p>${escapeHtml(report.methodology.scorePreservation)}</p>
+    ${listMarkup(report.methodology.limitations)}
+  `;
   $('reportNotices').innerHTML = report.notices.map(notice => `<p>${escapeHtml(notice)}</p>`).join('');
 }
 
 function finish() {
   try {
     const autonomyApplicable = state.autonomyApplicable !== false;
-    const report = generateMoneyProfileReport(state.answers, {
+    const report = generateProfessionalReport(state.answers, {
       autonomyApplicable,
-      maxPrimary: 3,
-      maxSecondary: 2,
+      mode: 'professional',
+      includeTechnical: true,
     });
     const storedAssessment = buildStoredAssessment({
       assessmentId: state.assessmentId,
@@ -377,8 +395,10 @@ function finish() {
     });
     const auditableRecord = {
       ...storedAssessment,
-      analysisVersion: report.analysisVersion,
-      reportVersion: report.reportVersion,
+      analysisVersion: report.metadata.analysisVersion,
+      reportVersion: report.metadata.reportVersion,
+      generationMethod: report.metadata.generationMethod,
+      usesGenerativeAI: report.metadata.usesGenerativeAI,
       report,
     };
 
@@ -411,12 +431,26 @@ function start(fresh = true) {
 }
 
 function resetResultPanels() {
-  $('primaryInsightsSection').hidden = true;
-  $('secondaryInsightsSection').hidden = true;
-  $('autonomyContextSection').hidden = true;
+  [
+    'primaryInsightsSection',
+    'secondaryInsightsSection',
+    'protectiveResourcesSection',
+    'tensionsSection',
+    'interactionsSection',
+    'recommendationsSection',
+    'reflectionSection',
+    'autonomyContextSection',
+  ].forEach(id => { $(id).hidden = true; });
   $('dimensionResults').replaceChildren();
-  $('primaryInsightsResults').replaceChildren();
-  $('secondaryInsightsResults').replaceChildren();
+  [
+    'primaryInsightsResults',
+    'secondaryInsightsResults',
+    'protectiveResourcesResults',
+    'tensionsResults',
+    'interactionsResults',
+    'recommendationsResults',
+    'reflectionResults',
+  ].forEach(id => $(id).replaceChildren());
   $('autonomyContextResult').replaceChildren();
   $('primaryProfileCodes').replaceChildren();
 }
@@ -483,10 +517,18 @@ $('saveExit').onclick = () => {
   toast('Progreso guardado en este dispositivo');
 };
 $('restartButton').onclick = restart;
-$('downloadButton').onclick = () => window.print();
+$('downloadButton').onclick = () => {
+  if (!lastReport) return;
+  const html = professionalReportToHtml(lastReport, {title: 'Mi actitud frente al dinero'});
+  const url = URL.createObjectURL(new Blob([html], {type: 'text/html'}));
+  const reportWindow = window.open(url, '_blank');
+  if (reportWindow) reportWindow.opener = null;
+  else toast('Permite ventanas emergentes para abrir el reporte completo');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
 $('shareButton').onclick = async () => {
   if (!lastReport) return;
-  const text = reportToText(lastReport);
+  const text = professionalReportToText(lastReport);
   try {
     if (navigator.share) {
       await navigator.share({title: 'Mi actitud frente al dinero', text});

@@ -72,12 +72,13 @@
         <h1 id="resultsTitle" tabindex="-1">Tu relación con el dinero,<br><em>vista con más claridad.</em></h1>
         <p>El resultado describe patrones; no asigna una nota general ni compara tus respuestas con las de otras personas.</p>
       </div>
-      <div class="result-grid">
+      <div class="result-grid professional-results-grid">
         <article class="score-card profile-summary" id="profileSummary">
           <div>
             <span class="result-label">LECTURA PRINCIPAL</span>
             <h2 id="finalLevel">Siete dimensiones, un perfil integrado</h2>
             <p id="finalMessage">Aquí aparecerá una síntesis breve de los patrones identificados.</p>
+            <p class="report-metadata" id="reportMetadata"></p>
             <div class="primary-profile-codes" id="primaryProfileCodes"></div>
           </div>
         </article>
@@ -104,21 +105,54 @@
           <div id="secondaryInsightsResults"></div>
         </article>
 
+        <article class="insight-card protective-resources-card" id="protectiveResourcesSection" hidden>
+          <span class="result-label">RECURSOS PROTECTORES</span>
+          <h2>Recursos que pueden ayudar</h2>
+          <p class="insights-intro">Capacidades del perfil que pueden contribuir a manejar otras áreas con mayor flexibilidad.</p>
+          <div id="protectiveResourcesResults"></div>
+        </article>
+
+        <article class="insight-card tensions-card" id="tensionsSection" hidden>
+          <span class="result-label">TENSIONES Y CONTEXTO</span>
+          <h2>Factores que cambian la interpretación</h2>
+          <p class="insights-intro">Estos patrones requieren cautela antes de atribuir una conducta únicamente a características individuales.</p>
+          <div id="tensionsResults"></div>
+        </article>
+
         <article class="insight-card focus-card" id="autonomyContextSection" hidden>
           <span class="result-label">CONTEXTO RELACIONAL</span>
           <h2>Autonomía y poder económico</h2>
           <div id="autonomyContextResult"></div>
         </article>
 
+        <article class="insight-card professional-wide" id="interactionsSection" hidden>
+          <span class="result-label">INTERACCIONES PRINCIPALES</span>
+          <h2>Cómo se relacionan las dimensiones</h2>
+          <div id="interactionsResults"></div>
+        </article>
+
+        <article class="insight-card professional-action-card" id="recommendationsSection" hidden>
+          <span class="result-label">ACCIONES SUGERIDAS</span>
+          <h2>Próximos pasos posibles</h2>
+          <ol class="professional-numbered-list" id="recommendationsResults"></ol>
+        </article>
+
+        <article class="insight-card professional-action-card" id="reflectionSection" hidden>
+          <span class="result-label">PREGUNTAS PARA REFLEXIÓN</span>
+          <h2>Ideas para profundizar</h2>
+          <ol class="professional-numbered-list" id="reflectionResults"></ol>
+        </article>
+
         <article class="recommendations result-note">
-          <span class="result-label">CÓMO LEER ESTE PERFIL</span>
-          <h2>Una descripción, no una etiqueta</h2>
-          <div id="reportNotices">
+          <span class="result-label">NOTA METODOLÓGICA</span>
+          <h2>Cómo fue construido este reporte</h2>
+          <div id="reportMethodology"></div>
+          <div class="report-notices" id="reportNotices">
             <p>Los valores de 0–100 son transformaciones visuales de las respuestas, no percentiles normativos. Las interpretaciones y correlaciones son hipótesis descriptivas de un instrumento en etapa de prototipo.</p>
           </div>
         </article>
       </div>
-      <div class="result-actions"><button class="primary" id="downloadButton" type="button">Descargar reporte ↓</button><button class="secondary" id="shareButton" type="button">Compartir resultado ↗</button><button class="text-button" id="restartButton" type="button">Repetir evaluación</button></div>
+      <div class="result-actions"><button class="primary" id="downloadButton" type="button">Abrir reporte completo ↗</button><button class="secondary" id="shareButton" type="button">Compartir resultado ↗</button><button class="text-button" id="restartButton" type="button">Repetir evaluación</button></div>
       <p class="disclaimer">Esta herramienta es educativa y de autorreflexión. No constituye diagnóstico psicológico ni asesoramiento financiero, fiscal, legal o contable.</p>
     </section>
   </main>
