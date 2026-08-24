@@ -82,8 +82,13 @@ function writePayload_(sheet, row, payload) {
     data[`Respuesta | ${id}`] = typeof answer === 'object' ? answer.value : answer;
   });
 
-  if (!data['Reporte']) data['Reporte'] = createReportFile_(payload);
   sheet.getRange(row, 1, 1, headers.length).setValues([headers.map(header => data[header] ?? '')]);
+
+  if (!data['Reporte']) {
+    const reportUrl = createReportFile_(payload);
+    const reportColumn = headers.indexOf('Reporte') + 1;
+    if (reportColumn > 0) sheet.getRange(row, reportColumn).setValue(reportUrl);
+  }
 }
 
 function createReportFile_(payload) {
@@ -99,7 +104,8 @@ function createReportFile_(payload) {
 }
 
 function embedLogo_(html) {
-  const files = DriveApp.getFilesByName(CONFIG.REPORT_LOGO_FILE_NAME);
+  const logoFileName = CONFIG.REPORT_LOGO_FILE_NAME || 'Hispanic_Wealth.png';
+  const files = DriveApp.getFilesByName(logoFileName);
   if (!files.hasNext()) return html;
   const blob = files.next().getBlob();
   const dataUri = `data:${blob.getContentType()};base64,${Utilities.base64Encode(blob.getBytes())}`;
