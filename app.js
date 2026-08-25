@@ -9,13 +9,13 @@ import {
 const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxWOrx1DKRysEy2P1Ew8Fmbg5SCHlhdVmIIN2_PhDePGdpzL6TeRMWYx4jrFVcnfjU/exec';
 
 const questionnaire = getQuestionnaireDefinition();
-const questions = questionnaire.questions;
+const questions = buildPresentationOrder(questionnaire.questions);
 const responseOptions = Object.entries(questionnaire.responseScale).map(([value, label]) => ({
   value: Number(value),
   label,
 }));
 
-const progressStorageKey = `moneyAttitudeProgress:${questionnaire.version}`;
+const progressStorageKey = `moneyAttitudeProgress:${questionnaire.version}:mixed-v1`;
 const lastAssessmentStorageKey = 'moneyAttitudeLastAssessment';
 const views = ['welcomeView', 'quizView', 'resultsView'];
 const standardLevelLabels = {
@@ -39,6 +39,31 @@ const insightPolarityLabels = {
   protective: 'Recurso protector',
 };
 const $ = id => document.getElementById(id);
+
+function buildPresentationOrder(allQuestions) {
+  const grouped = new Map();
+  const autonomyQuestions = [];
+
+  allQuestions.forEach(question => {
+    if (question.dimension === 'autonomy') {
+      autonomyQuestions.push(question);
+      return;
+    }
+    if (!grouped.has(question.dimension)) grouped.set(question.dimension, []);
+    grouped.get(question.dimension).push(question);
+  });
+
+  const mixedQuestions = [];
+  const groups = [...grouped.values()];
+  const longestGroup = Math.max(...groups.map(group => group.length));
+  for (let index = 0; index < longestGroup; index += 1) {
+    groups.forEach(group => {
+      if (group[index]) mixedQuestions.push(group[index]);
+    });
+  }
+
+  return mixedQuestions.concat(autonomyQuestions);
+}
 
 let state = createInitialState();
 let lastReport = null;
