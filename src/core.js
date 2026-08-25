@@ -475,13 +475,14 @@ export function evaluateSurvey(rawAnswers, options = {}) {
  * Convenience function for UI/API storage.
  * It preserves raw answers and derived output together so future scoring versions can be audited.
  */
-export function buildStoredAssessment({ assessmentId, respondentId = null, answers, autonomyApplicable = true, metadata = {} }) {
+export function buildStoredAssessment({ assessmentId, respondentId = null, answers, autonomyApplicable = true, metadata = {}, participant = null }) {
   const normalizedAnswers = answersToObject(answers);
   const result = evaluateSurvey(normalizedAnswers, { autonomyApplicable });
 
   return {
     assessmentId,
     respondentId,
+    participant,
     instrumentVersion: INSTRUMENT_VERSION,
     scoringVersion: INSTRUMENT_VERSION,
     autonomyApplicable,
