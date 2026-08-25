@@ -83,12 +83,12 @@ export const QUESTIONS = Object.freeze([
 
   // Autonomía y poder económico
   { id: 43, dimension: "autonomy", role: "control", direction: "direct", text: "En una relación de pareja he sentido que necesitaba permiso o una justificación excesiva para realizar gastos personales razonables." },
-  { id: 44, dimension: "autonomy", role: "control", direction: "direct", text: "Una pareja ha limitado o intentado limitar mi acceso a dinero o recursos que razonablemente deberían estar disponibles para mí." },
-  { id: 45, dimension: "autonomy", role: "control", direction: "direct", text: "Una pareja ha tomado decisiones económicas importantes que me afectaban sin permitirme participar razonablemente en ellas." },
-  { id: 46, dimension: "autonomy", role: "control", direction: "direct", text: "Una pareja ha dificultado que conozca información relevante sobre ingresos, cuentas, deudas o patrimonio que también me afecta." },
-  { id: 47, dimension: "autonomy", role: "control", direction: "direct", text: "Una pareja ha utilizado el dinero o la posibilidad de retirar apoyo económico para presionarme a tomar una decisión que yo no quería tomar." },
-  { id: 48, dimension: "autonomy", role: "control", direction: "direct", text: "Una pareja ha dificultado mi posibilidad de trabajar, estudiar o generar ingresos propios." },
-  { id: 49, dimension: "autonomy", role: "modifier", direction: "direct", text: "En mis relaciones económicas importantes puedo expresar desacuerdo y tomar decisiones sin temor a perder apoyo financiero como consecuencia." },
+  { id: 44, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha limitado o intentado limitar mi acceso a dinero o recursos que razonablemente deberían estar disponibles para mí." },
+  { id: 45, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha tomado decisiones económicas importantes que me afectaban sin permitirme participar razonablemente en ellas." },
+  { id: 46, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha dificultado que conozca información relevante sobre ingresos, cuentas, deudas o patrimonio que también me afecta." },
+  { id: 47, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha utilizado el dinero o la posibilidad de retirar apoyo económico para presionarme a tomar una decisión que yo no quería tomar." },
+  { id: 48, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha dificultado mi posibilidad de trabajar, estudiar o generar ingresos propios." },
+  { id: 49, dimension: "autonomy", role: "modifier", direction: "direct", text: "En mis decisiones económicas importantes puedo expresar desacuerdo y tomar mis decisiones sin temor a perder apoyo económico de mi pareja como consecuencia." },
 ]);
 
 export const DIMENSION_LABELS = Object.freeze({
