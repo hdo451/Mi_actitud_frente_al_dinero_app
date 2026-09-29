@@ -6,7 +6,7 @@ function doPost(event) {
   const lock = LockService.getScriptLock();
   try {
     const payload = JSON.parse(event.postData.contents);
-    if (!payload.attemptId) throw new Error('Falta attemptId');
+    validatePayload_(payload);
 
     lock.waitLock(10000);
     const sheet = getSheet_();
@@ -81,20 +81,22 @@ function writePayload_(sheet, row, payload) {
       data[`Resultado | ${dimension.label}`] = dimension.intensity?.display100 ?? '';
     });
   Object.entries(payload.answers || {}).forEach(([id, answer]) => {
-    data[`Respuesta | ${id}`] = typeof answer === 'object' ? answer.value : answer;
+    data[`Respuesta | ${id}`] = answer !== null && typeof answer === 'object' ? answer.value : answer;
   });
 
-  sheet.getRange(row, 1, 1, headers.length).setValues([headers.map(header => data[header] ?? '')]);
+  sheet.getRange(row, 1, 1, headers.length).setValues([headers.map(header => safeCell_(data[header] ?? ''))]);
 
-  if (!data['Reporte']) {
-    const reportUrl = createReportFile_(payload);
+  let reportUrl = data['Reporte'];
+  if (!reportUrl) {
+    reportUrl = createReportFile_(payload);
     const reportColumn = headers.indexOf('Reporte') + 1;
     if (reportColumn > 0) sheet.getRange(row, reportColumn).setValue(reportUrl);
-    if (payload.participant?.email) {
-      sendReportEmail_(payload, reportUrl);
-      const emailColumn = headers.indexOf('Correo enviado') + 1;
-      if (emailColumn > 0) sheet.getRange(row, emailColumn).setValue('Sí');
-    }
+  }
+  // Un fallo de correo no debe impedir un nuevo intento si el archivo ya existe.
+  if (payload.participant?.email && data['Correo enviado'] !== 'Sí') {
+    sendReportEmail_(payload, reportUrl);
+    const emailColumn = headers.indexOf('Correo enviado') + 1;
+    if (emailColumn > 0) sheet.getRange(row, emailColumn).setValue('Sí');
   }
 }
 
@@ -170,4 +172,35 @@ function escapeHtml_(value) {
 function json_(data) {
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Validación estructural; el endpoint público aún requiere protección contra abuso
+// para despliegues de gran alcance. Nunca se debe colocar una clave secreta en config.js.
+function validatePayload_(payload) {
+  if (!payload || typeof payload !== 'object') throw new Error('Solicitud inválida');
+  if (typeof payload.attemptId !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(payload.attemptId)) {
+    throw new Error('ID de intento inválido');
+  }
+  if (payload.event !== 'complete' || typeof payload.autonomyApplicable !== 'boolean') {
+    throw new Error('Evaluación incompleta');
+  }
+  const participant = payload.participant;
+  if (!participant || typeof participant.name !== 'string' || !participant.name.trim() || participant.name.length > 200 ||
+      typeof participant.email !== 'string' || participant.email.length > 254 || !/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(participant.email)) {
+    throw new Error('Nombre o correo inválido');
+  }
+  if (!payload.answers || Array.isArray(payload.answers) || typeof payload.answers !== 'object') throw new Error('Respuestas inválidas');
+  if (Object.keys(payload.answers).some(id => !/^(?:[1-9]|[1-4][0-9])$/.test(id))) throw new Error('Pregunta desconocida');
+  for (let id = 1; id <= 49; id += 1) {
+    const raw = payload.answers[id];
+    const value = raw !== null && typeof raw === 'object' ? raw.value : raw;
+    if (id > 42 && payload.autonomyApplicable === false && value == null) continue;
+    if (!Number.isInteger(value) || value < 1 || value > 6) throw new Error('Respuesta inválida: ' + id);
+  }
+  if (!payload.report || !Array.isArray(payload.report.dimensions) || payload.report.dimensions.length !== 7 ||
+      typeof payload.reportHtml !== 'string' || payload.reportHtml.length > 500000) throw new Error('Reporte inválido');
+}
+
+function safeCell_(value) {
+  return typeof value === 'string' && /^[=+@-]/.test(value) ? "'" + value : value;
 }

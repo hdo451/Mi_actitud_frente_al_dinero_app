@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../Downloads/money-profile-engine-download/examples"
+		},
+		{
+			"path": "../../../Downloads/money-profile-engine-download/src"
+		},
+		{
+			"path": "../../../Downloads/money-profile-engine-download/tests"
+		}
+	],
+	"settings": {}
+}

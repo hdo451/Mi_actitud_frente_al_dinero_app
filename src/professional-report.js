@@ -145,7 +145,7 @@ function dimensionCard(d) {
     </article>`;
 }
 
-export function professionalReportToHtml(report, { title = "Perfil psicológico-financiero" } = {}) {
+export function professionalReportToHtml(report, { title = "Perfil psicológico-financiero", logoUrl = "Hispanic_Wealth.png" } = {}) {
   const subject = report.metadata.subjectName ? ` · ${escapeHtml(report.metadata.subjectName)}` : "";
   const primaryHtml = report.primaryPatterns.map(patternCard).join("");
   const protectiveHtml = report.protectiveResources.map(patternCard).join("");
@@ -203,7 +203,7 @@ export function professionalReportToHtml(report, { title = "Perfil psicológico-
 <main>
   <header>
     <h1>${escapeHtml(title)}${subject}</h1>
-    <div class="brand"><img src="Hispanic_Wealth.png" alt="Hispanic Wealth"></div>
+    <div class="brand"><img src="${escapeHtml(logoUrl)}" alt="Hispanic Wealth"></div>
     <div class="subtitle">Lectura personal sobre la relación con el dinero</div>
   </header>
 

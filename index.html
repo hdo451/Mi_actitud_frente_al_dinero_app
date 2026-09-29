@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="stiles.css">
 </head>
 <body>
+  <p id="loadStatus" role="status">Cargando el cuestionario… Si este mensaje permanece, comprueba que se hayan subido todos los archivos y que el servidor permita cargar JavaScript.</p>
+  <noscript>Activa JavaScript en tu navegador para usar el cuestionario.</noscript>
+  <p id="storageNotice" role="status" hidden>El navegador no permite guardar el progreso. Puedes completar el cuestionario y abrir tu reporte, pero evita cerrar o recargar esta página.</p>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="topbar">
     <img class="partner-logo" src="Hispanic_Wealth.png" alt="Hispanic Wealth">
@@ -24,14 +27,14 @@
         <p>Responde 49 afirmaciones para construir una lectura de los patrones que influyen en tus decisiones económicas. No hay respuestas correctas o incorrectas.</p>
         <div class="participant-form" aria-label="Datos para recibir el reporte">
           <label for="participantName">Nombre</label>
-          <input id="participantName" type="text" autocomplete="name" placeholder="Tu nombre" required>
+          <input id="participantName" type="text" maxlength="200" autocomplete="name" placeholder="Tu nombre" required>
           <label for="participantEmail">Correo electrónico</label>
-          <input id="participantEmail" type="email" autocomplete="email" placeholder="tu@correo.com" required>
-          <small>Te enviaremos una copia de tu reporte a este correo.</small>
+          <input id="participantEmail" type="email" maxlength="254" autocomplete="email" placeholder="tu@correo.com" required>
+          <small>Al finalizar podrás abrir tu reporte y solicitaremos el envío de una copia a este correo.</small>
         </div>
         <div class="hero-actions">
-          <button class="primary" id="startButton" type="button">Comenzar recorrido <span>→</span></button>
-          <button class="resume" id="resumeButton" hidden>Continuar mi progreso</button>
+          <button class="primary" id="startButton" type="button" disabled>Comenzar recorrido <span>→</span></button>
+          <button class="resume" id="resumeButton" hidden disabled>Continuar mi progreso</button>
         </div>
         <div class="trust-row"><span>◷ &nbsp;49 afirmaciones</span><span>◆ &nbsp;Progreso guardado</span><span>✦ &nbsp;Lectura orientativa</span></div>
       </div>
@@ -159,11 +162,13 @@
           </div>
         </article>
       </div>
+      <p id="syncStatus" role="status"></p>
       <div class="result-actions"><button class="primary" id="downloadButton" type="button">Abrir reporte completo ↗</button><button class="secondary" id="shareButton" type="button">Compartir resultado ↗</button><button class="text-button" id="restartButton" type="button">Repetir evaluación</button></div>
       <p class="disclaimer">Esta herramienta es educativa y de autorreflexión. No constituye diagnóstico psicológico ni asesoramiento financiero, fiscal, legal o contable.</p>
     </section>
   </main>
   <div class="toast" id="toast" role="status"></div>
-  <script type="module" src="app.js"></script>
+  <script src="config.js"></script>
+  <script src="bootstrap.js" defer></script>
 </body>
 </html>

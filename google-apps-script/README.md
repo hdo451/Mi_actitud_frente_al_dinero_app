@@ -29,7 +29,7 @@ Esta integracion recibe el resultado profesional de la app, guarda sus respuesta
 3. **Ejecutar como**: tu cuenta administradora del proyecto.
 4. **Quien tiene acceso**: `Cualquiera`.
 5. Pulsa **Implementar** y copia la URL que termina en `/exec`.
-6. En `app.js`, pega esa URL en `APPS_SCRIPT_ENDPOINT`.
+6. En `config.js`, pega esa URL en `appsScriptEndpoint`.
 7. Publica nuevamente la app.
 
 La aplicacion usa una solicitud `POST` sin leer la respuesta del navegador. Eso permite que el formulario publico envie el resultado sin necesitar credenciales de Google en el navegador. El acceso a Sheets y Drive ocurre bajo la cuenta que publico el Apps Script.
@@ -54,8 +54,11 @@ La migracion queda separada de la logica:
 3. Crea el Apps Script desde el nuevo Sheet y copia los mismos tres archivos.
 4. Cambia solamente `SPREADSHEET_ID` y `REPORT_FOLDER_ID`.
 5. Ejecuta `setupSheet`, autoriza con la cuenta institucional y crea una nueva implementacion.
-6. Cambia `APPS_SCRIPT_ENDPOINT` por la nueva URL y vuelve a publicar la app.
+6. Cambia `appsScriptEndpoint` en `config.js` por la nueva URL y vuelve a publicar la app.
 
 No uses IDs de tu cuenta personal en el codigo de la app ni compartas contrasenas. Para una migracion ordenada, conserva este directorio como la fuente versionada del Apps Script y documenta los dos IDs fuera del repositorio.
 
 La app solicita el nombre y el correo antes de comenzar. Al finalizar, Apps Script guarda ambos datos en la fila y envia el reporte al correo indicado usando `MailApp`. La primera ejecucion despues de copiar el `Code.gs` puede pedir tambien permiso para enviar correo.
+
+
+Después de actualizar `Code.gs`, publica una nueva versión de la implementación existente para conservar su URL. Subir los archivos al servidor web no actualiza Apps Script. El bloqueo evita escrituras simultáneas, pero puede limitar los envíos concurrentes. Un reenvío con el mismo ID reutiliza la fila y el reporte y reintenta el correo si aún no figura enviado; no garantiza entrega exactamente una vez ante interrupciones del servicio.

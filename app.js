@@ -6,7 +6,7 @@ import {
   professionalReportToText,
 } from './money-profile-engine.js';
 
-const APPS_SCRIPT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxWOrx1DKRysEy2P1Ew8Fmbg5SCHlhdVmIIN2_PhDePGdpzL6TeRMWYx4jrFVcnfjU/exec';
+const APPS_SCRIPT_ENDPOINT = globalThis.MONEY_APP_CONFIG?.appsScriptEndpoint ?? '';
 
 const questionnaire = getQuestionnaireDefinition();
 const questions = buildPresentationOrder(questionnaire.questions);
@@ -81,8 +81,8 @@ function createInitialState() {
 }
 
 function createAssessmentId() {
-  return crypto.randomUUID
-    ? crypto.randomUUID()
+  return globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID()
     : `assessment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
@@ -103,13 +103,35 @@ function show(id) {
   window.scrollTo(0, 0);
 }
 
+let storageAvailable = true;
+function storage(method, ...args) {
+  try {
+    const result = globalThis.localStorage[method](...args);
+    storageAvailable = true;
+    return method === 'getItem' ? result : true;
+  } catch (error) {
+    storageAvailable = false;
+    console.warn('Almacenamiento local no disponible', error);
+    $('storageNotice').hidden = false;
+    return method === 'getItem' ? null : false;
+  }
+}
+
+function localReportHtml(report) {
+  return professionalReportToHtml(report, {
+    title: 'Mi actitud frente al dinero',
+    logoUrl: new URL('Hispanic_Wealth.png', document.baseURI).href,
+  });
+}
+
 function saveProgress() {
-  localStorage.setItem(progressStorageKey, JSON.stringify(state));
+  storage('setItem', progressStorageKey, JSON.stringify(state));
+  // Aunque el almacenamiento falle, el estado sigue disponible en esta pestaña.
   $('resumeButton').hidden = false;
 }
 
 function clearProgress() {
-  localStorage.removeItem(progressStorageKey);
+  storage('removeItem', progressStorageKey);
   $('resumeButton').hidden = true;
 }
 
@@ -431,40 +453,59 @@ function finish() {
       report,
     };
 
-    localStorage.setItem(lastAssessmentStorageKey, JSON.stringify(auditableRecord));
-    syncCompletedAssessment_(auditableRecord, report);
+    storage('setItem', lastAssessmentStorageKey, JSON.stringify(auditableRecord));
     lastReport = report;
     renderReport(report);
     clearProgress();
     show('resultsView');
     $('saveExit').hidden = true;
     $('resultsTitle').focus({preventScroll: true});
+    void syncCompletedAssessment_(auditableRecord, report);
   } catch (error) {
     console.error(error);
     toast('No fue posible calcular el perfil. Revisa que todas las afirmaciones estén respondidas.');
   }
 }
 
-function syncCompletedAssessment_(assessment, report) {
-  if (!APPS_SCRIPT_ENDPOINT) return;
+async function syncCompletedAssessment_(assessment, report) {
+  const status = $('syncStatus');
+  if (!APPS_SCRIPT_ENDPOINT) {
+    status.textContent = 'Tu reporte está listo. El envío por correo no está configurado; puedes abrirlo y guardarlo aquí.';
+    return;
+  }
+  status.textContent = 'Tu reporte está listo. Enviando una copia al servicio de correo…';
+  let timeout;
+  try {
+    const endpoint = new URL(APPS_SCRIPT_ENDPOINT);
+    if (endpoint.protocol !== 'https:') throw new Error('El servicio de envío requiere HTTPS');
 
-  const payload = {
-    event: 'complete',
-    attemptId: assessment.assessmentId,
-    autonomyApplicable: assessment.autonomyApplicable,
-    participant: assessment.participant,
-    answers: assessment.answers,
-    report,
-    reportHtml: professionalReportToHtml(report, {title: 'Mi actitud frente al dinero'}),
-    metadata: assessment.metadata,
-  };
+    const payload = {
+      event: 'complete',
+      attemptId: assessment.assessmentId,
+      autonomyApplicable: assessment.autonomyApplicable,
+      participant: assessment.participant,
+      answers: assessment.answers,
+      report,
+      reportHtml: professionalReportToHtml(report, {title: 'Mi actitud frente al dinero'}),
+      metadata: assessment.metadata,
+    };
 
-  fetch(APPS_SCRIPT_ENDPOINT, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: JSON.stringify(payload),
-  }).catch(error => console.error('No fue posible sincronizar el resultado', error));
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 20000);
+    await fetch(endpoint.href, {
+      signal: controller.signal,
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload),
+    });
+    status.textContent = 'Solicitud enviada. La recepción y el correo no se pueden confirmar desde esta página. Puedes abrir y guardar tu reporte aquí.';
+  } catch (error) {
+    console.error('No fue posible sincronizar el resultado', error);
+    status.textContent = 'No se pudo confirmar el envío. Tu reporte sigue disponible: ábrelo y guárdalo aquí.';
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function start(fresh = true) {
@@ -537,7 +578,7 @@ function escapeHtml(value) {
 }
 
 function loadSavedProgress() {
-  const saved = localStorage.getItem(progressStorageKey);
+  const saved = storage('getItem', progressStorageKey);
   if (!saved) return;
 
   try {
@@ -550,10 +591,20 @@ function loadSavedProgress() {
       && typeof parsed.answers === 'object';
 
     if (!isValid) throw new Error('Progreso incompatible');
-    state = parsed;
+    if (Array.isArray(parsed.answers) || Object.entries(parsed.answers).some(([id, value]) =>
+      !/^(?:[1-9]|[1-4][0-9])$/.test(id) || (value !== null && (!Number.isInteger(value) || value < 1 || value > 6)))) {
+      throw new Error('Respuestas guardadas incompatibles');
+    }
+    state = {...createInitialState(), ...parsed, participant: {
+      name: typeof parsed.participant?.name === 'string' ? parsed.participant.name : '',
+      email: typeof parsed.participant?.email === 'string' ? parsed.participant.email : '',
+    }};
+    state.assessmentId ||= createAssessmentId();
+    state.startedAt ||= new Date().toISOString();
+    state.autonomyApplicable = typeof parsed.autonomyApplicable === 'boolean' ? parsed.autonomyApplicable : null;
     $('resumeButton').hidden = false;
   } catch {
-    localStorage.removeItem(progressStorageKey);
+    storage('removeItem', progressStorageKey);
   }
 }
 
@@ -579,12 +630,12 @@ $('saveExit').onclick = () => {
   hideAutonomyGate();
   show('welcomeView');
   $('saveExit').hidden = true;
-  toast('Progreso guardado en este dispositivo');
+  toast(storageAvailable ? 'Progreso guardado en este dispositivo' : 'No se pudo guardar el progreso. Mantén esta página abierta para continuar.');
 };
 $('restartButton').onclick = restart;
 $('downloadButton').onclick = () => {
   if (!lastReport) return;
-  const html = professionalReportToHtml(lastReport, {title: 'Mi actitud frente al dinero'});
+  const html = localReportHtml(lastReport);
   const url = URL.createObjectURL(new Blob([html], {type: 'text/html'}));
   const reportWindow = window.open(url, '_blank');
   if (reportWindow) reportWindow.opener = null;

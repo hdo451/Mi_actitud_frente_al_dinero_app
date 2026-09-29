@@ -5,14 +5,15 @@
   "type": "module",
   "description": "Motor determinístico para 49 preguntas, 7 dimensiones, 4 capas de interpretación y reporte profesional sin IA generativa.",
   "scripts": {
-    "test": "node tests/selftest.js && node tests/pair-signals-selftest.js && node tests/full-pipeline-selftest.js && node tests/professional-report-selftest.js",
+    "test": "node tests/selftest.js && node tests/pair-signals-selftest.js && node tests/full-pipeline-selftest.js && node tests/professional-report-selftest.js && node tests/deployment-selftest.js",
     "test:core": "node tests/selftest.js",
     "test:pairs": "node tests/pair-signals-selftest.js",
     "test:pipeline": "node tests/full-pipeline-selftest.js",
     "demo": "node examples/example.js",
     "demo:full": "node examples/full-pipeline-example.js",
     "test:professional": "node tests/professional-report-selftest.js",
-    "demo:professional": "node examples/professional-report-example.js"
+    "demo:professional": "node examples/professional-report-example.js",
+    "package:site": "node scripts/package-site.js"
   },
   "engines": {
     "node": ">=18"
