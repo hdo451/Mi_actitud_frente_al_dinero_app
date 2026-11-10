@@ -4,11 +4,14 @@ import {
   getQuestionnaireDefinition,
   professionalReportToHtml,
   professionalReportToText,
-} from './money-profile-engine.js';
+} from './money-profile-engine.js?v=three-choice-2';
 
 const APPS_SCRIPT_ENDPOINT = globalThis.MONEY_APP_CONFIG?.appsScriptEndpoint ?? '';
 
 const questionnaire = getQuestionnaireDefinition({responseScale: "three-choice"});
+if (questionnaire.responseScaleId !== 'three-choice' || Object.keys(questionnaire.responseScale).length !== 3) {
+  throw new Error('La versión del cuestionario está desactualizada. Recarga la página para cargar las tres respuestas.');
+}
 const questions = buildPresentationOrder(questionnaire.questions);
 const responseOptions = Object.entries(questionnaire.responseScale).map(([value, label]) => ({
   value: Number(value),

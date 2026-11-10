@@ -1,4 +1,4 @@
-import { DIMENSION_LABELS } from "./core.js";
+import { DIMENSION_LABELS } from "./core.js?v=three-choice-2";
 
 export const DIMENSION_NARRATIVE_VERSION = "0.5.0-prototype";
 

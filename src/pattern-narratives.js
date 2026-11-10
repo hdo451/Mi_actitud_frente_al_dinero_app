@@ -1,4 +1,4 @@
-import { EMERGENT_PATTERNS } from "./emergent-patterns.js";
+import { EMERGENT_PATTERNS } from "./emergent-patterns.js?v=three-choice-2";
 
 export const PATTERN_NARRATIVE_VERSION = "0.5.0-prototype";
 

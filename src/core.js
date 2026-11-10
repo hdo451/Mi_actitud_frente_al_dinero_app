@@ -16,9 +16,9 @@
 export const INSTRUMENT_VERSION = "1.0.0-prototype";
 export const THREE_CHOICE_VERSION = "2.0.0-three-choice-prototype";
 export const THREE_CHOICE_SCALE = Object.freeze({
-  1: "Sí, ese soy yo",
-  2: "No, yo no haría eso",
-  3: "A veces sí, a veces no",
+  1: "Si, ese soy yo",
+  2: "No, Yo no haría eso",
+  3: "A veces si, a veces no.",
 });
 // Choice IDs are not scores. Preserve the existing rule scale internally.
 const THREE_CHOICE_SCORES = Object.freeze({1: 6, 2: 1, 3: 3.5});

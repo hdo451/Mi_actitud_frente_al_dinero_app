@@ -117,3 +117,8 @@ assert.equal(rows[2][rows[0].indexOf('Respuesta | 1')], 1);
 assert.equal(rows[2][rows[0].indexOf('Respuesta | 2')], 2);
 assert.equal(rows[2][rows[0].indexOf('Respuesta | 3')], 3);
 console.log('Three-choice integration passed: three buttons, midpoint reports, progress isolation and existing Apps Script compatibility.');
+
+// A stale engine must fail visibly instead of silently rendering six options.
+assert.throws(() => vm.runInNewContext(appSource, {...engine,
+  getQuestionnaireDefinition: () => engine.getQuestionnaireDefinition(),
+}), /desactualizada/);

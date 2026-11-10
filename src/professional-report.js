@@ -1,5 +1,5 @@
-import { composeProfessionalReport } from "./report-composer.js";
-import { validateProfessionalReport } from "./report-schema.js";
+import { composeProfessionalReport } from "./report-composer.js?v=three-choice-2";
+import { validateProfessionalReport } from "./report-schema.js?v=three-choice-2";
 
 export const PROFESSIONAL_REPORT_RENDERER_VERSION = "0.5.0-prototype";
 

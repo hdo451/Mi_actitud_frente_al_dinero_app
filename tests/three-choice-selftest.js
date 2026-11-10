@@ -8,7 +8,7 @@ import {
 const options = {responseScale: 'three-choice'};
 const definition = getQuestionnaireDefinition(options);
 assert.deepEqual(Object.values(definition.responseScale), [
-  'Sí, ese soy yo', 'No, yo no haría eso', 'A veces sí, a veces no',
+  'Si, ese soy yo', 'No, Yo no haría eso', 'A veces si, a veces no.',
 ]);
 assert.notEqual(definition.version, getQuestionnaireDefinition().version);
 

@@ -1,10 +1,10 @@
-import { analyzeMoneyProfile } from "./analysis.js";
-import { getDimensionNarrative } from "./dimension-narratives.js";
-import { getPatternNarrative } from "./pattern-narratives.js";
-import { selectInteractionNarratives } from "./interaction-narratives.js";
-import { buildRecommendations } from "./recommendation-library.js";
-import { buildReflectionQuestions } from "./reflection-library.js";
-import { PROFESSIONAL_REPORT_VERSION, normalizeProfessionalReportOptions } from "./report-schema.js";
+import { analyzeMoneyProfile } from "./analysis.js?v=three-choice-2";
+import { getDimensionNarrative } from "./dimension-narratives.js?v=three-choice-2";
+import { getPatternNarrative } from "./pattern-narratives.js?v=three-choice-2";
+import { selectInteractionNarratives } from "./interaction-narratives.js?v=three-choice-2";
+import { buildRecommendations } from "./recommendation-library.js?v=three-choice-2";
+import { buildReflectionQuestions } from "./reflection-library.js?v=three-choice-2";
+import { PROFESSIONAL_REPORT_VERSION, normalizeProfessionalReportOptions } from "./report-schema.js?v=three-choice-2";
 
 export const REPORT_COMPOSER_VERSION = "0.5.0-prototype";
 
@@ -203,7 +203,7 @@ export function composeProfessionalReport(rawAnswers, options = {}) {
       displayScores: "Los valores 0–100, cuando se muestran, son transformaciones lineales para visualización; no son percentiles normativos.",
       limitations: [
         ...(base.responseScale === "three-choice" ? [
-          "Este perfil usa tres respuestas: Sí, ese soy yo; No, yo no haría eso; A veces sí, a veces no. A veces se interpreta como punto intermedio. La escala simplifica el cuestionario y ofrece menos detalle que la versión de seis respuestas; los resultados son orientativos.",
+          "Este perfil usa tres respuestas: Si, ese soy yo; No, Yo no haría eso; A veces si, a veces no.. A veces se interpreta como punto intermedio. La escala simplifica el cuestionario y ofrece menos detalle que la versión de seis respuestas; los resultados son orientativos.",
           "En autonomía, la amplitud cuenta las situaciones respondidas con Sí o A veces; no implica que todas ocurran siempre ni con la misma gravedad.",
         ] : []),
         "No constituye diagnóstico clínico, financiero, legal ni de relaciones.",

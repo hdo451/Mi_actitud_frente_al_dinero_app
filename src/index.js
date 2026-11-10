@@ -18,7 +18,7 @@ export {
   buildStoredAssessment,
   getQuestionnaireDefinition,
   runSelfTest,
-} from "./core.js";
+} from "./core.js?v=three-choice-2";
 
 export {
   PAIR_SIGNAL_VERSION,
@@ -27,7 +27,7 @@ export {
   PAIR_SIGNALS,
   evaluatePairSignals,
   validatePairSignalCatalog,
-} from "./pair-signals.js";
+} from "./pair-signals.js?v=three-choice-2";
 
 export {
   EMERGENT_PATTERN_VERSION,
@@ -35,31 +35,31 @@ export {
   EMERGENT_PATTERNS,
   evaluateEmergentPatterns,
   validateEmergentPatternCatalog,
-} from "./emergent-patterns.js";
+} from "./emergent-patterns.js?v=three-choice-2";
 
 export {
   CONTEXT_OVERRIDE_VERSION,
   CONTEXT_OVERRIDE_RULES,
   applyContextOverrides,
   validateContextOverrideCatalog,
-} from "./context-overrides.js";
+} from "./context-overrides.js?v=three-choice-2";
 
 export {
   NARRATIVE_RESOLVER_VERSION,
   resolveNarrative,
-} from "./narrative-resolver.js";
+} from "./narrative-resolver.js?v=three-choice-2";
 
 export {
   ANALYSIS_ENGINE_VERSION,
   analyzeMoneyProfile,
-} from "./analysis.js";
+} from "./analysis.js?v=three-choice-2";
 
 export {
   CORRELATION_VERSION,
   CORRELATION_RULES,
   evaluateCorrelations,
   contextualDimensionSummary,
-} from "./correlations.js";
+} from "./correlations.js?v=three-choice-2";
 
 export {
   REPORT_VERSION,
@@ -69,36 +69,36 @@ export {
   generateQuickReportV2,
   quickReportToText,
   quickReportV2ToText,
-} from "./report.js";
+} from "./report.js?v=three-choice-2";
 
 export {
   DIMENSION_NARRATIVE_VERSION,
   getDimensionNarrative,
   validateDimensionNarrativeCoverage,
-} from "./dimension-narratives.js";
+} from "./dimension-narratives.js?v=three-choice-2";
 
 export {
   PATTERN_NARRATIVE_VERSION,
   PATTERN_NARRATIVES,
   getPatternNarrative,
   validatePatternNarrativeCoverage,
-} from "./pattern-narratives.js";
+} from "./pattern-narratives.js?v=three-choice-2";
 
 export {
   INTERACTION_NARRATIVE_VERSION,
   buildInteractionNarrative,
   selectInteractionNarratives,
-} from "./interaction-narratives.js";
+} from "./interaction-narratives.js?v=three-choice-2";
 
 export {
   RECOMMENDATION_LIBRARY_VERSION,
   buildRecommendations,
-} from "./recommendation-library.js";
+} from "./recommendation-library.js?v=three-choice-2";
 
 export {
   REFLECTION_LIBRARY_VERSION,
   buildReflectionQuestions,
-} from "./reflection-library.js";
+} from "./reflection-library.js?v=three-choice-2";
 
 export {
   PROFESSIONAL_REPORT_VERSION,
@@ -106,16 +106,16 @@ export {
   REPORT_SECTION_ORDER,
   normalizeProfessionalReportOptions,
   validateProfessionalReport,
-} from "./report-schema.js";
+} from "./report-schema.js?v=three-choice-2";
 
 export {
   REPORT_COMPOSER_VERSION,
   composeProfessionalReport,
-} from "./report-composer.js";
+} from "./report-composer.js?v=three-choice-2";
 
 export {
   PROFESSIONAL_REPORT_RENDERER_VERSION,
   generateProfessionalReport,
   professionalReportToText,
   professionalReportToHtml,
-} from "./professional-report.js";
+} from "./professional-report.js?v=three-choice-2";
