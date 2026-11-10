@@ -8,7 +8,7 @@ import {
 
 const APPS_SCRIPT_ENDPOINT = globalThis.MONEY_APP_CONFIG?.appsScriptEndpoint ?? '';
 
-const questionnaire = getQuestionnaireDefinition();
+const questionnaire = getQuestionnaireDefinition({responseScale: "three-choice"});
 const questions = buildPresentationOrder(questionnaire.questions);
 const responseOptions = Object.entries(questionnaire.responseScale).map(([value, label]) => ({
   value: Number(value),
@@ -178,7 +178,7 @@ function updateCoach() {
   if (position < .34) {
     $('coachKicker').textContent = 'RESPONDE CON HONESTIDAD';
     $('coachTitle').innerHTML = 'No hay respuestas<br>correctas o incorrectas.';
-    $('coachText').textContent = 'Elige la opción que mejor describa cómo piensas, sientes o actúas hoy.';
+    $('coachText').textContent = 'Elige Sí si te representa, No si no te representa o A veces si depende de la situación.';
   } else if (position < .7) {
     $('coachKicker').textContent = 'SIGUE A TU RITMO';
     $('coachTitle').innerHTML = 'Cada respuesta<br>completa tu perfil.';
@@ -345,7 +345,7 @@ function renderAutonomy(dimension) {
     ${dimensionContextMarkup(dimension)}
     <div class="profile-metrics">
       ${metricMarkup('Intensidad de las señales', dimension.controlIntensity)}
-      <div class="context-stat"><span>Amplitud</span><strong>${dimension.breadth.countAtOrAbove4} de ${dimension.breadth.totalItems} señales</strong></div>
+      <div class="context-stat"><span>Amplitud</span><strong>${dimension.breadth.countReported ?? dimension.breadth.countAtOrAbove4} de ${dimension.breadth.totalItems} señales</strong></div>
       <div class="context-stat"><span>Autonomía actual</span><strong>${escapeHtml(dimension.currentAutonomy.label)}</strong></div>
     </div>
     ${dimensionNarrativeMarkup(dimension)}
@@ -429,12 +429,14 @@ function finish() {
     const autonomyApplicable = state.autonomyApplicable !== false;
     const report = generateProfessionalReport(state.answers, {
       autonomyApplicable,
+      responseScale: questionnaire.responseScaleId,
       mode: 'professional',
       includeTechnical: true,
     });
     const storedAssessment = buildStoredAssessment({
       assessmentId: state.assessmentId,
       answers: state.answers,
+      responseScale: questionnaire.responseScaleId,
       autonomyApplicable,
       metadata: {
         locale: 'es',
@@ -482,6 +484,7 @@ async function syncCompletedAssessment_(assessment, report) {
     const payload = {
       event: 'complete',
       attemptId: assessment.assessmentId,
+      responseScale: assessment.responseScale,
       autonomyApplicable: assessment.autonomyApplicable,
       participant: assessment.participant,
       answers: assessment.answers,
@@ -592,7 +595,7 @@ function loadSavedProgress() {
 
     if (!isValid) throw new Error('Progreso incompatible');
     if (Array.isArray(parsed.answers) || Object.entries(parsed.answers).some(([id, value]) =>
-      !/^(?:[1-9]|[1-4][0-9])$/.test(id) || (value !== null && (!Number.isInteger(value) || value < 1 || value > 6)))) {
+      !/^(?:[1-9]|[1-4][0-9])$/.test(id) || (value !== null && (!Number.isInteger(value) || value < 1 || value > 3)))) {
       throw new Error('Respuestas guardadas incompatibles');
     }
     state = {...createInitialState(), ...parsed, participant: {

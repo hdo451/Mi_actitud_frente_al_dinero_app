@@ -167,6 +167,7 @@ export function composeProfessionalReport(rawAnswers, options = {}) {
       reportVersion: PROFESSIONAL_REPORT_VERSION,
       composerVersion: REPORT_COMPOSER_VERSION,
       instrumentVersion: base.instrumentVersion,
+      responseScale: base.responseScale,
       analysisVersion: analysis.analysisVersion,
       generatedAt: base.generatedAt,
       mode: cfg.mode,
@@ -201,6 +202,10 @@ export function composeProfessionalReport(rawAnswers, options = {}) {
       scorePreservation: "Las interacciones nunca cambian los códigos ni las puntuaciones base; sólo modifican contexto, prioridad narrativa y confianza atribucional.",
       displayScores: "Los valores 0–100, cuando se muestran, son transformaciones lineales para visualización; no son percentiles normativos.",
       limitations: [
+        ...(base.responseScale === "three-choice" ? [
+          "Este perfil usa tres respuestas: Sí, ese soy yo; No, yo no haría eso; A veces sí, a veces no. A veces se interpreta como punto intermedio. La escala simplifica el cuestionario y ofrece menos detalle que la versión de seis respuestas; los resultados son orientativos.",
+          "En autonomía, la amplitud cuenta las situaciones respondidas con Sí o A veces; no implica que todas ocurran siempre ni con la misma gravedad.",
+        ] : []),
         "No constituye diagnóstico clínico, financiero, legal ni de relaciones.",
         "Los umbrales y reglas deben revisarse con datos reales antes de presentarse como instrumento validado.",
         "Un resultado contextual de autonomía no permite inferir por sí solo causas, intenciones o características de otra persona.",

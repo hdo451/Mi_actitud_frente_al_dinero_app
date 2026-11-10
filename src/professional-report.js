@@ -14,7 +14,7 @@ export function generateProfessionalReport(rawAnswers, options = {}) {
 
 function formatScore(score) {
   if (!score || typeof score !== "object") return "—";
-  if (typeof score.raw === "number") return `${score.raw.toFixed(2)} / 6 (${score.display100}/100 visual)`;
+  if (typeof score.raw === "number") return `${score.display100}/100 visual`;
   return "—";
 }
 
@@ -50,7 +50,7 @@ export function professionalReportToText(report) {
       lines.push(`  Regulación: ${formatScore(d.regulation)}`);
     } else if (d.applicable) {
       lines.push(`  Intensidad de control reportado: ${formatScore(d.controlIntensity)}`);
-      lines.push(`  Amplitud: ${d.breadth?.countAtOrAbove4 ?? "—"}/${d.breadth?.totalItems ?? 6}`);
+      lines.push(`  Amplitud: ${d.breadth?.countReported ?? d.breadth?.countAtOrAbove4 ?? "—"}/${d.breadth?.totalItems ?? 6}`);
       lines.push(`  Autonomía actual: ${d.currentAutonomy?.label ?? "—"}`);
     }
     lines.push(`  ${d.narrative.overview}`);
@@ -119,7 +119,7 @@ function dimensionCard(d) {
     ? (d.applicable ? `
         <div class="metrics">
           <div><span>Control reportado</span><strong>${escapeHtml(formatScore(d.controlIntensity))}</strong></div>
-          <div><span>Amplitud</span><strong>${escapeHtml(`${d.breadth?.countAtOrAbove4 ?? "—"}/${d.breadth?.totalItems ?? 6}`)}</strong></div>
+          <div><span>Amplitud</span><strong>${escapeHtml(`${d.breadth?.countReported ?? d.breadth?.countAtOrAbove4 ?? "—"}/${d.breadth?.totalItems ?? 6}`)}</strong></div>
           <div><span>Autonomía actual</span><strong>${escapeHtml(d.currentAutonomy?.label ?? "—")}</strong></div>
         </div>` : `<p class="muted">Módulo no aplicado.</p>`)
     : `

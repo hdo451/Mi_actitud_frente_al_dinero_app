@@ -39,9 +39,10 @@ import {
   professionalReportToHtml,
 } from "./money-profile-engine.js";
 
-const questionnaire = getQuestionnaireDefinition();
+const questionnaire = getQuestionnaireDefinition({responseScale: "three-choice"});
 
 const report = generateProfessionalReport(answers, {
+  responseScale: "three-choice",
   subjectName: "Nombre opcional",
   autonomyApplicable: true,
   mode: "professional",
@@ -119,3 +120,27 @@ Este es un prototipo teórico y determinístico, no un instrumento clínico vali
 Usa HTTPS. Si el servidor tiene una política CSP, debe permitir scripts del propio sitio, los estilos inline usados por las barras y el reporte, las fuentes de Google si se desean, y las conexiones con `https://script.google.com` y `https://script.googleusercontent.com`. No publiques `.git`, los archivos de Apps Script, pruebas ni archivos del editor.
 
 La app muestra el resultado aunque falle el almacenamiento local o el envío. El progreso guardado pertenece al navegador y al dominio; no se transfiere automáticamente a un dominio nuevo. El envío directo a Apps Script usa una respuesta opaca (`no-cors`): la página no puede confirmar el guardado ni la entrega del correo, y no reintenta automáticamente. Para confirmar la entrega se necesita una API con respuesta legible. La validación del Apps Script no sustituye autenticación o protección contra abuso de un endpoint público.
+
+## Cuestionario de tres respuestas
+
+La web utiliza la versión `2.0.0-three-choice-prototype` y ofrece, en este orden:
+
+1. Sí, ese soy yo.
+2. No, yo no haría eso.
+3. A veces sí, a veces no.
+
+Los números son identificadores, no puntuaciones ordenadas. El motor recibe
+`responseScale: "three-choice"` y transforma Sí → 6, No → 1 y A veces → 3,5
+para reutilizar las reglas internas. En la visualización equivalen a 100, 0 y 50
+antes de promediar; los ítems inversos invierten los extremos y conservan el punto
+medio. En autonomía, la amplitud cuenta Sí y A veces como experiencias reportadas.
+El reporte advierte del menor detalle y conserva su carácter orientativo.
+
+Los registros y reportes identifican la escala y la versión. El progreso de la
+versión anterior no se mezcla con el nuevo. Las llamadas al motor sin
+`responseScale` conservan la escala histórica de seis respuestas para compatibilidad.
+
+El Apps Script existente admite los IDs 1, 2 y 3 sin volver a publicarlo. En Sheets,
+consulta «Versión instrumento» antes de interpretar las columnas «Respuesta»:
+para la versión 2, 1 = Sí, 2 = No y 3 = A veces. Las filas históricas conservan
+su codificación original. El reporte adjunto ya se genera con la escala nueva.

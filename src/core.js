@@ -14,6 +14,19 @@
  */
 
 export const INSTRUMENT_VERSION = "1.0.0-prototype";
+export const THREE_CHOICE_VERSION = "2.0.0-three-choice-prototype";
+export const THREE_CHOICE_SCALE = Object.freeze({
+  1: "Sí, ese soy yo",
+  2: "No, yo no haría eso",
+  3: "A veces sí, a veces no",
+});
+// Choice IDs are not scores. Preserve the existing rule scale internally.
+const THREE_CHOICE_SCORES = Object.freeze({1: 6, 2: 1, 3: 3.5});
+function checkResponseScale(responseScale) {
+  if (!["likert-6", "three-choice"].includes(responseScale)) {
+    throw new RangeError(`Escala desconocida: ${responseScale}`);
+  }
+}
 export const SCALE_MIN = 1;
 export const SCALE_MAX = 6;
 
@@ -297,7 +310,8 @@ function answersToObject(answers) {
  * Validates input without silently converting strings to numbers.
  * autonomyApplicable=false allows questions 43–49 to be null/undefined.
  */
-export function validateAnswers(rawAnswers, { autonomyApplicable = true } = {}) {
+export function validateAnswers(rawAnswers, { autonomyApplicable = true, responseScale = "likert-6" } = {}) {
+  checkResponseScale(responseScale);
   const answers = answersToObject(rawAnswers);
 
   for (let id = 1; id <= 49; id += 1) {
@@ -308,7 +322,13 @@ export function validateAnswers(rawAnswers, { autonomyApplicable = true } = {}) 
       continue;
     }
 
-    assertScaleValue(value, id);
+    if (responseScale === "three-choice") {
+      if (!Number.isInteger(value) || !Object.hasOwn(THREE_CHOICE_SCALE, value)) {
+        throw new RangeError(`La respuesta ${id} debe ser una de las tres opciones (1, 2 o 3).`);
+      }
+    } else {
+      assertScaleValue(value, id);
+    }
   }
 
   return true;
@@ -383,7 +403,7 @@ function autonomyCode(intensityLevel, breadth) {
   return "REVIEW";
 }
 
-function scoreAutonomy(answers, { autonomyApplicable = true } = {}) {
+function scoreAutonomy(answers, { autonomyApplicable = true, responseScale = "likert-6" } = {}) {
   if (!autonomyApplicable) {
     return {
       dimension: "autonomy",
@@ -401,7 +421,7 @@ function scoreAutonomy(answers, { autonomyApplicable = true } = {}) {
   const values = controlIds.map((id) => answers[id]);
   const intensity = mean(values);
   const intensityLevel = autonomyIntensityLevel(intensity);
-  const breadthCount = values.filter((value) => value >= 4).length;
+  const breadthCount = values.filter((value) => value >= (responseScale === "three-choice" ? 3.5 : 4)).length;
   const breadth = breadthLevel(breadthCount);
   const code = autonomyCode(intensityLevel, breadth);
   const modifier = autonomyModifier(answers[49]);
@@ -421,7 +441,9 @@ function scoreAutonomy(answers, { autonomyApplicable = true } = {}) {
       itemIds: controlIds,
     },
     breadth: {
-      countAtOrAbove4: breadthCount,
+      ...(responseScale === "three-choice"
+        ? {countReported: breadthCount, criterion: "Sí o a veces"}
+        : {countAtOrAbove4: breadthCount}),
       totalItems: controlIds.length,
       level: breadth,
     },
@@ -444,9 +466,13 @@ function scoreAutonomy(answers, { autonomyApplicable = true } = {}) {
  * Stage 2 cross-dimension logic can consume this output without changing the questionnaire UI.
  */
 export function evaluateSurvey(rawAnswers, options = {}) {
-  const { autonomyApplicable = true } = options;
-  const answers = answersToObject(rawAnswers);
-  validateAnswers(answers, { autonomyApplicable });
+  const { autonomyApplicable = true, responseScale = "likert-6" } = options;
+  const originalAnswers = answersToObject(rawAnswers);
+  validateAnswers(originalAnswers, { autonomyApplicable, responseScale });
+  const answers = responseScale === "three-choice"
+    ? Object.fromEntries(Object.entries(originalAnswers).map(([id, value]) =>
+        [id, Number(id) >= 43 && !autonomyApplicable ? null : THREE_CHOICE_SCORES[value]]))
+    : originalAnswers;
 
   const dimensions = {
     security: scoreStandardDimension("security", answers),
@@ -455,11 +481,12 @@ export function evaluateSurvey(rawAnswers, options = {}) {
     status: scoreStandardDimension("status", answers),
     giving: scoreStandardDimension("giving", answers),
     avoidance: scoreStandardDimension("avoidance", answers),
-    autonomy: scoreAutonomy(answers, { autonomyApplicable }),
+    autonomy: scoreAutonomy(answers, { autonomyApplicable, responseScale }),
   };
 
   return {
-    instrumentVersion: INSTRUMENT_VERSION,
+    instrumentVersion: responseScale === "three-choice" ? THREE_CHOICE_VERSION : INSTRUMENT_VERSION,
+    responseScale,
     generatedAt: new Date().toISOString(),
     scale: { min: SCALE_MIN, max: SCALE_MAX },
     dimensions,
@@ -475,16 +502,17 @@ export function evaluateSurvey(rawAnswers, options = {}) {
  * Convenience function for UI/API storage.
  * It preserves raw answers and derived output together so future scoring versions can be audited.
  */
-export function buildStoredAssessment({ assessmentId, respondentId = null, answers, autonomyApplicable = true, metadata = {}, participant = null }) {
+export function buildStoredAssessment({ assessmentId, respondentId = null, answers, autonomyApplicable = true, metadata = {}, participant = null, responseScale = "likert-6" }) {
   const normalizedAnswers = answersToObject(answers);
-  const result = evaluateSurvey(normalizedAnswers, { autonomyApplicable });
+  const result = evaluateSurvey(normalizedAnswers, { autonomyApplicable, responseScale });
 
   return {
     assessmentId,
     respondentId,
     participant,
-    instrumentVersion: INSTRUMENT_VERSION,
-    scoringVersion: INSTRUMENT_VERSION,
+    instrumentVersion: result.instrumentVersion,
+    scoringVersion: result.instrumentVersion,
+    responseScale,
     autonomyApplicable,
     answers: normalizedAnswers,
     result,
@@ -496,10 +524,12 @@ export function buildStoredAssessment({ assessmentId, respondentId = null, answe
 /**
  * Useful for rendering the questionnaire dynamically in React/Vue/Svelte/etc.
  */
-export function getQuestionnaireDefinition() {
+export function getQuestionnaireDefinition({responseScale = "likert-6"} = {}) {
+  checkResponseScale(responseScale);
   return {
-    version: INSTRUMENT_VERSION,
-    responseScale: RESPONSE_SCALE,
+    version: responseScale === "three-choice" ? THREE_CHOICE_VERSION : INSTRUMENT_VERSION,
+    responseScaleId: responseScale,
+    responseScale: responseScale === "three-choice" ? THREE_CHOICE_SCALE : RESPONSE_SCALE,
     questions: QUESTIONS,
     dimensions: DIMENSION_LABELS,
   };

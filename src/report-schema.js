@@ -24,6 +24,7 @@ export function normalizeProfessionalReportOptions(options = {}) {
 
   return {
     mode,
+    responseScale: options.responseScale ?? "likert-6",
     subjectName: typeof options.subjectName === "string" && options.subjectName.trim() ? options.subjectName.trim() : null,
     autonomyApplicable: options.autonomyApplicable !== false,
     maxPrimary: Number.isInteger(options.maxPrimary) ? Math.max(1, Math.min(5, options.maxPrimary)) : defaults.maxPrimary,
