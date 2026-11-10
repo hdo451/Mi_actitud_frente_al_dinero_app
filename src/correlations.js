@@ -2,9 +2,9 @@
  * Compatibility facade.
  * New projects should import the explicit 4-layer modules from index.js.
  */
-import { evaluatePairSignals, PAIR_SIGNAL_VERSION, PAIR_SIGNALS } from "./pair-signals.js?v=three-choice-4";
-import { evaluateEmergentPatterns, EMERGENT_PATTERN_VERSION } from "./emergent-patterns.js?v=three-choice-4";
-import { applyContextOverrides, CONTEXT_OVERRIDE_VERSION } from "./context-overrides.js?v=three-choice-4";
+import { evaluatePairSignals, PAIR_SIGNAL_VERSION, PAIR_SIGNALS } from "./pair-signals.js?v=three-choice-5";
+import { evaluateEmergentPatterns, EMERGENT_PATTERN_VERSION } from "./emergent-patterns.js?v=three-choice-5";
+import { applyContextOverrides, CONTEXT_OVERRIDE_VERSION } from "./context-overrides.js?v=three-choice-5";
 
 export const CORRELATION_VERSION = `pairs:${PAIR_SIGNAL_VERSION}|patterns:${EMERGENT_PATTERN_VERSION}|context:${CONTEXT_OVERRIDE_VERSION}`;
 export const CORRELATION_RULES = PAIR_SIGNALS;

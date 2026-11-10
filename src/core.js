@@ -43,9 +43,9 @@ export const QUESTIONS = Object.freeze([
   // Seguridad financiera
   { id: 1, dimension: "security", role: "intensity", direction: "direct", text: "Tener dinero guardado que pueda usar cuando lo necesite me ayuda a sentirme tranquilo/a." },
   { id: 2, dimension: "security", role: "regulation", direction: "reverse", text: "Me preocupa que en el futuro me falte dinero, aunque ahora mi situación económica sea estable." },
-  { id: 3, dimension: "security", role: "intensity", direction: "direct", text: "Antes de usar una cantidad importante de dinero, pienso en qué pasaría si lo necesitara más adelante." },
+  { id: 3, dimension: "security", role: "intensity", direction: "direct", text: "Antes de usar una cantidad importante de dinero, pienso en qué pasaría si lo llego a necesitar más adelante." },
   { id: 4, dimension: "security", role: "regulation", direction: "reverse", text: "Me cuesta sentir que tengo suficiente dinero para estar completamente seguro/a." },
-  { id: 5, dimension: "security", role: "intensity", direction: "direct", text: "Prefiero guardar dinero que pueda necesitar, aunque tenga que renunciar a algo que podría disfrutar o aprovechar ahora." },
+  { id: 5, dimension: "security", role: "intensity", direction: "direct", text: "Prefiero guardar dinero que pueda necesitar más adelante, aunque tenga que renunciar a algo que podría disfrutar ahora." },
   { id: 6, dimension: "security", role: "intensity", direction: "direct", text: "Pienso más en el dinero que podría perder que en el que podría ganar." },
   { id: 7, dimension: "security", role: "intensity", direction: "direct", text: "Cuando no sé cómo estará mi situación económica, intento controlar más mis gastos, mis ahorros o mis decisiones sobre dinero." },
 
@@ -63,7 +63,7 @@ export const QUESTIONS = Object.freeze([
   { id: 16, dimension: "spontaneity", role: "regulation", direction: "reverse", text: "Cuando siento estrés, tristeza o frustración, gastar dinero puede hacerme sentir mejor por un rato." },
   { id: 17, dimension: "spontaneity", role: "intensity", direction: "direct", text: "Una oferta, un descuento o una oportunidad inesperada puede hacer que compre algo que no tenía pensado comprar." },
   { id: 18, dimension: "spontaneity", role: "intensity", direction: "direct", text: "Cuando salgo o me reúno con otras personas, puedo gastar más de lo que tenía pensado." },
-  { id: 19, dimension: "spontaneity", role: "intensity", direction: "direct", text: "A veces compro algo porque lo quiero en ese momento, sin pensar mucho en cómo afectará a mi dinero." },
+  { id: 19, dimension: "spontaneity", role: "intensity", direction: "direct", text: "A veces compro cosas porque las quiero en ese momento, sin pensar mucho en cómo afectará a mi dinero." },
   { id: 20, dimension: "spontaneity", role: "regulation", direction: "reverse", text: "Después de algunas compras me pregunto por qué tomé esa decisión." },
   { id: 21, dimension: "spontaneity", role: "intensity", direction: "direct", text: "Puedo disfrutar de un gasto que no había planeado sin descuidar mis pagos y compromisos de dinero." },
 
@@ -86,9 +86,9 @@ export const QUESTIONS = Object.freeze([
   { id: 35, dimension: "giving", role: "regulation", direction: "direct", text: "Puedo ayudar con dinero a alguien sin sentir que, por eso, tengo derecho a influir en sus decisiones personales." },
 
   // Evitación y afrontamiento
-  { id: 36, dimension: "avoidance", role: "intensity", direction: "direct", text: "Cuando creo que hay un problema de dinero, suelo dejar para después la revisión de mis cuentas, mis deudas o el dinero que entra y sale." },
+  { id: 36, dimension: "avoidance", role: "intensity", direction: "direct", text: "Cuando creo que hay un problema de dinero, dejo para después la revisión de mis cuentas, mis deudas o el dinero que entra y sale." },
   { id: 37, dimension: "avoidance", role: "intensity", direction: "direct", text: "Hablar en detalle de mi situación económica puede hacerme sentir incómodo/a." },
-  { id: 38, dimension: "avoidance", role: "intensity", direction: "direct", text: "Si una decisión sobre dinero me preocupa mucho, puedo dejarla para después, aunque sé que debería tomarla." },
+  { id: 38, dimension: "avoidance", role: "intensity", direction: "direct", text: "Si una decisión sobre dinero me preocupa mucho, puedo dejarla para después, aunque sé que debería tomarla ya." },
   { id: 39, dimension: "avoidance", role: "intensity", direction: "direct", text: "Algunas veces prefiero no saber exactamente cuál es mi situación económica." },
   { id: 40, dimension: "avoidance", role: "regulation", direction: "direct", text: "Cuando cometo un error con el dinero, puedo reconocerlo y revisar qué pasó, en lugar de hacer como si no hubiera ocurrido." },
   { id: 41, dimension: "avoidance", role: "intensity", direction: "direct", text: "Me cuesta pedir ayuda o consejo cuando no entiendo algo relacionado con el dinero." },
@@ -97,7 +97,7 @@ export const QUESTIONS = Object.freeze([
   // Autonomía y poder económico
   { id: 43, dimension: "autonomy", role: "control", direction: "direct", text: "En una relación de pareja, he sentido que debía pedir permiso o dar demasiadas explicaciones para hacer gastos personales razonables." },
   { id: 44, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja me ha impedido o ha intentado impedir que use dinero o bienes que debería poder usar." },
-  { id: 45, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha tomado decisiones importantes sobre dinero que me afectaban, sin darme una oportunidad real de participar." },
+  { id: 45, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha tomado decisiones importantes sobre dinero que me afectaban, sin dejarme participar." },
   { id: 46, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha puesto obstáculos para que yo conozca información importante sobre el dinero que entra, las cuentas, las deudas o los bienes que también me afectan." },
   { id: 47, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha usado el dinero, o la posibilidad de dejar de apoyarme económicamente, para presionarme a tomar una decisión que yo no quería." },
   { id: 48, dimension: "autonomy", role: "control", direction: "direct", text: "Mi pareja ha puesto obstáculos para que yo trabaje, estudie o gane mi propio dinero." },

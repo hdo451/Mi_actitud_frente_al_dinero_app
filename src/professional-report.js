@@ -1,6 +1,6 @@
-import {scoreCircleMarkup} from "./score-visual.js?v=three-choice-4";
-import { composeProfessionalReport } from "./report-composer.js?v=three-choice-4";
-import { validateProfessionalReport } from "./report-schema.js?v=three-choice-4";
+import {scoreCircleMarkup} from "./score-visual.js?v=three-choice-5";
+import { composeProfessionalReport } from "./report-composer.js?v=three-choice-5";
+import { validateProfessionalReport } from "./report-schema.js?v=three-choice-5";
 
 export const PROFESSIONAL_REPORT_RENDERER_VERSION = "0.5.0-prototype";
 

@@ -1,4 +1,4 @@
-import { analyzeMoneyProfile } from "./analysis.js?v=three-choice-4";
+import { analyzeMoneyProfile } from "./analysis.js?v=three-choice-5";
 
 export const REPORT_VERSION = "0.4.0-prototype";
 

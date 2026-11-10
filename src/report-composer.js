@@ -1,10 +1,10 @@
-import { analyzeMoneyProfile } from "./analysis.js?v=three-choice-4";
-import { getDimensionNarrative } from "./dimension-narratives.js?v=three-choice-4";
-import { getPatternNarrative } from "./pattern-narratives.js?v=three-choice-4";
-import { selectInteractionNarratives } from "./interaction-narratives.js?v=three-choice-4";
-import { buildRecommendations } from "./recommendation-library.js?v=three-choice-4";
-import { buildReflectionQuestions } from "./reflection-library.js?v=three-choice-4";
-import { PROFESSIONAL_REPORT_VERSION, normalizeProfessionalReportOptions } from "./report-schema.js?v=three-choice-4";
+import { analyzeMoneyProfile } from "./analysis.js?v=three-choice-5";
+import { getDimensionNarrative } from "./dimension-narratives.js?v=three-choice-5";
+import { getPatternNarrative } from "./pattern-narratives.js?v=three-choice-5";
+import { selectInteractionNarratives } from "./interaction-narratives.js?v=three-choice-5";
+import { buildRecommendations } from "./recommendation-library.js?v=three-choice-5";
+import { buildReflectionQuestions } from "./reflection-library.js?v=three-choice-5";
+import { PROFESSIONAL_REPORT_VERSION, normalizeProfessionalReportOptions } from "./report-schema.js?v=three-choice-5";
 
 export const REPORT_COMPOSER_VERSION = "0.5.0-prototype";
 
