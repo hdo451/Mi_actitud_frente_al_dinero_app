@@ -1,5 +1,5 @@
-import { getDimensionNarrative } from "./dimension-narratives.js?v=three-choice-3";
-import { getPatternNarrative } from "./pattern-narratives.js?v=three-choice-3";
+import { getDimensionNarrative } from "./dimension-narratives.js?v=three-choice-4";
+import { getPatternNarrative } from "./pattern-narratives.js?v=three-choice-4";
 
 export const RECOMMENDATION_LIBRARY_VERSION = "0.5.0-prototype";
 

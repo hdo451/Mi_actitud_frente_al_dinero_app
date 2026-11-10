@@ -5,7 +5,7 @@ import {
   getQuestionnaireDefinition,
   professionalReportToHtml,
   professionalReportToText,
-} from './money-profile-engine.js?v=three-choice-3';
+} from './money-profile-engine.js?v=three-choice-4';
 
 const APPS_SCRIPT_ENDPOINT = globalThis.MONEY_APP_CONFIG?.appsScriptEndpoint ?? '';
 
