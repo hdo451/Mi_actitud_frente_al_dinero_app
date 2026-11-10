@@ -1,10 +1,11 @@
 import {
   buildStoredAssessment,
+  scoreCircleMarkup,
   generateProfessionalReport,
   getQuestionnaireDefinition,
   professionalReportToHtml,
   professionalReportToText,
-} from './money-profile-engine.js?v=three-choice-2';
+} from './money-profile-engine.js?v=three-choice-3';
 
 const APPS_SCRIPT_ENDPOINT = globalThis.MONEY_APP_CONFIG?.appsScriptEndpoint ?? '';
 
@@ -271,12 +272,10 @@ function back() {
 function metricMarkup(label, metric) {
   return `
     <div class="profile-metric">
+      ${scoreCircleMarkup(metric.display100)}
       <div class="profile-metric-head">
         <span>${escapeHtml(label)}</span>
         <strong>${metric.display100}/100 · ${standardLevelLabels[metric.level] ?? metric.level}</strong>
-      </div>
-      <div class="area-line" role="meter" aria-label="${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${metric.display100}">
-        <i style="width:${metric.display100}%"></i>
       </div>
     </div>
   `;

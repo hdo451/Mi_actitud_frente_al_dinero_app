@@ -1,5 +1,6 @@
-import { composeProfessionalReport } from "./report-composer.js?v=three-choice-2";
-import { validateProfessionalReport } from "./report-schema.js?v=three-choice-2";
+import {scoreCircleMarkup} from "./score-visual.js?v=three-choice-3";
+import { composeProfessionalReport } from "./report-composer.js?v=three-choice-3";
+import { validateProfessionalReport } from "./report-schema.js?v=three-choice-3";
 
 export const PROFESSIONAL_REPORT_RENDERER_VERSION = "0.5.0-prototype";
 
@@ -14,7 +15,7 @@ export function generateProfessionalReport(rawAnswers, options = {}) {
 
 function formatScore(score) {
   if (!score || typeof score !== "object") return "—";
-  if (typeof score.raw === "number") return `${score.display100}/100 visual`;
+  if (typeof score.raw === "number") return `${score.display100}/100`;
   return "—";
 }
 
@@ -114,18 +115,22 @@ function patternCard(item) {
     </article>`;
 }
 
+function scoreMetric(label, score) {
+  return `<div class="score-metric">${scoreCircleMarkup(score?.display100)}<span>${escapeHtml(label)}</span><strong>${escapeHtml(formatScore(score))}</strong></div>`;
+}
+
 function dimensionCard(d) {
   const scores = d.dimension === "autonomy"
     ? (d.applicable ? `
         <div class="metrics">
-          <div><span>Control reportado</span><strong>${escapeHtml(formatScore(d.controlIntensity))}</strong></div>
+          ${scoreMetric("Control reportado", d.controlIntensity)}
           <div><span>Amplitud</span><strong>${escapeHtml(`${d.breadth?.countReported ?? d.breadth?.countAtOrAbove4 ?? "—"}/${d.breadth?.totalItems ?? 6}`)}</strong></div>
           <div><span>Autonomía actual</span><strong>${escapeHtml(d.currentAutonomy?.label ?? "—")}</strong></div>
         </div>` : `<p class="muted">Módulo no aplicado.</p>`)
     : `
         <div class="metrics">
-          <div><span>Intensidad</span><strong>${escapeHtml(formatScore(d.intensity))}</strong></div>
-          <div><span>Regulación</span><strong>${escapeHtml(formatScore(d.regulation))}</strong></div>
+          ${scoreMetric("Intensidad", d.intensity)}
+          ${scoreMetric("Regulación", d.regulation)}
           <div><span>Contexto</span><strong>${escapeHtml(d.contextualState)}</strong></div>
         </div>`;
 
@@ -186,6 +191,8 @@ export function professionalReportToHtml(report, { title = "Perfil psicológico-
     .pattern-name { color:var(--accent); margin-bottom:10px; }
     .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:14px 0; }
     .metrics div { background:var(--soft); padding:10px; border-radius:8px; }
+    .score-circle { display:block; width:88px; height:88px; max-width:100%; margin:0 auto 8px; }
+    .metrics .score-metric { text-align:center; }
     .metrics span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
     .metrics strong { display:block; margin-top:3px; font-size:12px; font-weight:600; }
     .two-col { display:grid; grid-template-columns:1fr 1fr; gap:18px; }

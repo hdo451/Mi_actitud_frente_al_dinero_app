@@ -5,7 +5,7 @@
     if (location.protocol === 'file:') {
       throw new Error('Abre la app mediante un servidor HTTP o HTTPS, no con doble clic en el archivo.');
     }
-    await import('./app.js?v=three-choice-2');
+    await import('./app.js?v=three-choice-3');
     status.hidden = true;
     document.getElementById('startButton').disabled = false;
     document.getElementById('resumeButton').disabled = false;

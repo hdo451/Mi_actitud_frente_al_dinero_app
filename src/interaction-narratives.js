@@ -1,4 +1,4 @@
-import { DIMENSION_LABELS } from "./core.js?v=three-choice-2";
+import { DIMENSION_LABELS } from "./core.js?v=three-choice-3";
 
 export const INTERACTION_NARRATIVE_VERSION = "0.5.0-prototype";
 

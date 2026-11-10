@@ -1,1 +1,1 @@
-export * from "./src/index.js?v=three-choice-2";
+export * from "./src/index.js?v=three-choice-3";

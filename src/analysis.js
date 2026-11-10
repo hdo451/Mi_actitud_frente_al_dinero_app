@@ -1,8 +1,8 @@
-import { evaluateSurvey } from "./core.js?v=three-choice-2";
-import { evaluatePairSignals } from "./pair-signals.js?v=three-choice-2";
-import { evaluateEmergentPatterns } from "./emergent-patterns.js?v=three-choice-2";
-import { applyContextOverrides } from "./context-overrides.js?v=three-choice-2";
-import { resolveNarrative } from "./narrative-resolver.js?v=three-choice-2";
+import { evaluateSurvey } from "./core.js?v=three-choice-3";
+import { evaluatePairSignals } from "./pair-signals.js?v=three-choice-3";
+import { evaluateEmergentPatterns } from "./emergent-patterns.js?v=three-choice-3";
+import { applyContextOverrides } from "./context-overrides.js?v=three-choice-3";
+import { resolveNarrative } from "./narrative-resolver.js?v=three-choice-3";
 
 export const ANALYSIS_ENGINE_VERSION = "0.4.0-prototype";
 

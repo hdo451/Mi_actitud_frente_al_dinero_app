@@ -145,7 +145,7 @@ consulta «Versión instrumento» antes de interpretar las columnas «Respuesta�
 para la versión 2, 1 = Sí, 2 = No y 3 = A veces. Las filas históricas conservan
 su codificación original. El reporte adjunto ya se genera con la escala nueva.
 
-Los módulos web se cargan con `?v=three-choice-2` en toda la cadena de imports,
+Los módulos web se cargan con `?v=three-choice-3` en toda la cadena de imports,
 además de la entrada `bootstrap.js`, para evitar mezclar versiones en la caché.
 Al publicar una nueva versión del JavaScript, actualiza este identificador en
 HTML, bootstrap y los imports del motor juntos. La web rechaza un motor que
